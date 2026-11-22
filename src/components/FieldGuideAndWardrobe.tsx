@@ -1,7 +1,28 @@
 import React from 'react';
 import { DISHES, Dish, WARDROBE_ITEMS, WardrobeItem } from '../data/gameData';
 import { cuteAudio } from '../utils/audio';
-import { DishIllustration, PixelDivider, WardrobeIllustration } from './KawaiiIllustrations';
+import {
+  DishIllustration,
+  OfficialPixelSprite,
+  OfficialSpriteId,
+  PixelDivider,
+  WardrobeIllustration,
+} from './KawaiiIllustrations';
+
+const ESTUARY_FRIENDS: { id: OfficialSpriteId; label: string; role: string }[] = [
+  { id: 'mangrove', label: 'Red Mangrove', role: 'Prop-root nursery' },
+  { id: 'crab', label: 'Mud Crab', role: 'Soil aerator' },
+  { id: 'shrimp', label: 'River Prawn', role: 'Root shelter' },
+  { id: 'cockle1', label: 'Blood Cockle', role: 'Wave biobarrier' },
+  { id: 'mussel', label: 'Green Mussel', role: 'Water filter' },
+  { id: 'oyster', label: 'Rock Oyster', role: 'Shoreline anchor' },
+  { id: 'seaweed', label: 'Coastal Flora', role: 'Salinity filter' },
+  { id: 'fish', label: 'Estuary Fish', role: 'Canal swimmer' },
+  { id: 'squid', label: 'Coastal Squid', role: 'Tidal hunter' },
+  { id: 'octopus', label: 'Reef Octopus', role: 'Bay dweller' },
+  { id: 'jellyfish', label: 'Moon Jelly', role: 'Estuary drifter' },
+  { id: 'shell', label: 'Tidal Shell', role: 'Reef builder' },
+];
 
 interface FieldGuideProps {
   cookedCounts: Record<string, number>;
@@ -66,6 +87,24 @@ export const FieldGuideSection: React.FC<FieldGuideProps> = ({
             </button>
           );
         })}
+      </div>
+      <PixelDivider variant="ocean" label="Estuary Flora & Fauna" />
+
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2.5">
+        {ESTUARY_FRIENDS.map((entry) => (
+          <div
+            key={entry.id}
+            className="px-box bg-[var(--surface-sanctuary)]/65 p-2.5 flex flex-col items-center text-center"
+          >
+            <OfficialPixelSprite name={entry.id} size={42} alt={entry.label} />
+            <div className="mt-1.5 text-[11px] font-bold text-[var(--ink-main)] leading-tight">
+              {entry.label}
+            </div>
+            <div className="text-[10px] text-[var(--ink-soft)] leading-tight mt-0.5">
+              {entry.role}
+            </div>
+          </div>
+        ))}
       </div>
     </section>
   );

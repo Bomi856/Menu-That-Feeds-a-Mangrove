@@ -5,6 +5,7 @@ import { cuteAudio } from '../utils/audio';
 import {
   BlueMenuArt,
   DishIllustration,
+  OfficialPixelSprite,
   PinkMenuArt,
   PixelDivider,
   ShellIllustration,
@@ -161,7 +162,14 @@ export const InteractiveMenus: React.FC<InteractiveMenusProps> = ({
           <div className="px-tape mx-auto w-36 -mt-7 mb-4" aria-hidden="true" />
 
           <div className="px-box bg-[#FFF9FB] p-4 sm:p-6">
-            <div className="mx-auto mb-3 max-w-sm px-box bg-[#F082A8] px-4 py-2.5 text-center">
+            <div className="mx-auto mb-3 max-w-md px-box bg-[#F082A8] px-4 py-2.5 text-center">
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <OfficialPixelSprite name="crab" size={24} />
+                <OfficialPixelSprite name="shrimp" size={24} />
+                <OfficialPixelSprite name="fish" size={24} />
+                <OfficialPixelSprite name="squid" size={24} />
+                <OfficialPixelSprite name="octopus" size={24} />
+              </div>
               <h2 className="text-2xl font-bold text-white tracking-wide">
                 {t.coastalMenuTitle}
               </h2>
@@ -170,7 +178,7 @@ export const InteractiveMenus: React.FC<InteractiveMenusProps> = ({
               </p>
             </div>
 
-            <PixelDivider variant="crab" label="Bang Khun Thian Dishes" />
+            <PixelDivider variant="seafood" label="Bang Khun Thian Dishes" />
 
             {/* Category Filter Buttons */}
             <div className="mb-4 flex flex-wrap gap-2 justify-center" role="group" aria-label="Filter dishes">
@@ -328,7 +336,13 @@ export const InteractiveMenus: React.FC<InteractiveMenusProps> = ({
           <div className="px-tape mx-auto w-36 -mt-7 mb-4" aria-hidden="true" />
 
           <div className="px-box bg-[#F5FBFF] p-4 sm:p-6">
-            <div className="mx-auto mb-3 max-w-sm px-box bg-[#6BBEE8] px-4 py-2.5 text-center">
+            <div className="mx-auto mb-3 max-w-md px-box bg-[#6BBEE8] px-4 py-2.5 text-center">
+              <div className="flex items-center justify-center gap-2.5 mb-1">
+                <OfficialPixelSprite name="jellyfish" size={24} />
+                <OfficialPixelSprite name="drink" size={24} />
+                <OfficialPixelSprite name="dessert" size={24} />
+                <OfficialPixelSprite name="bun" size={24} />
+              </div>
               <h2 className="text-2xl font-bold text-white tracking-wide">
                 {t.sweetsMenuTitle}
               </h2>
@@ -337,7 +351,7 @@ export const InteractiveMenus: React.FC<InteractiveMenusProps> = ({
               </p>
             </div>
 
-            <PixelDivider variant="stars" label="Blue Cafe Treats" />
+            <PixelDivider variant="ocean" label="Blue Cafe Treats" />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {treatDishes.map((dish) => {

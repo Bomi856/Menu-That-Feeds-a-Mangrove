@@ -5,6 +5,7 @@ import { FieldGuideSection, WardrobeSection } from './components/FieldGuideAndWa
 import { InteractiveMenus } from './components/InteractiveMenus';
 import {
   ExplorerAvatar,
+  OfficialPixelSprite,
   PixelDivider,
   PixelMascotIllustration,
   PixelMusicPlayerIcon,
@@ -32,6 +33,7 @@ import {
   PRONOUN_OPTIONS,
   PronounId,
   UI_TEXT,
+  getChefGreeting,
 } from './data/i18n';
 import {
   CloudProgressPayload,
@@ -213,6 +215,9 @@ export default function App() {
   const [showExplorerModal, setShowExplorerModal] = useState(false);
   const [isOpeningSetup, setIsOpeningSetup] = useState(false);
   const [draftExplorer, setDraftExplorer] = useState(state.explorer);
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetIncludeChef, setResetIncludeChef] = useState(false);
+  const reopenedWelcomeFromNavRef = useRef(false);
   const pendingMusicStartRef = useRef(false);
   const t = UI_TEXT[state.lang];
 
@@ -486,50 +491,32 @@ export default function App() {
   const handleLoadingComplete = useCallback(() => {
     setIsLoading(false);
     let hasSeenWelcome = false;
-    let hasDoneChefSetup = false;
     try {
       hasSeenWelcome = localStorage.getItem(WELCOME_KEY) === '1';
-      hasDoneChefSetup = localStorage.getItem(CHEF_SETUP_KEY) === '1';
     } catch {
       hasSeenWelcome = false;
-      hasDoneChefSetup = false;
     }
 
-    if (!hasSeenWelcome) {
-      setWelcomeAlreadyRead(false);
-      setShowWelcome(true);
-    } else {
-      if (!hasDoneChefSetup) {
-        setDraftExplorer(stateRef.current.explorer);
-        setIsOpeningSetup(true);
-        setShowExplorerModal(true);
-      }
-      void cuteAudio.tryAutoStart().then((started) => {
-        if (started) {
-          setMusicOn(true);
-        } else {
-          pendingMusicStartRef.current = true;
-        }
-      });
-    }
+    reopenedWelcomeFromNavRef.current = false;
+    setWelcomeAlreadyRead(hasSeenWelcome);
+    setShowWelcome(true);
   }, []);
 
   const handleConfirmWelcome = () => {
-    let hasDoneChefSetup = false;
     try {
-      hasDoneChefSetup = localStorage.getItem(CHEF_SETUP_KEY) === '1';
       localStorage.setItem(WELCOME_KEY, '1');
     } catch {
       // Ignore storage errors
     }
-    const wasReopened = welcomeAlreadyRead;
+    const openedFromNav = reopenedWelcomeFromNavRef.current;
+    reopenedWelcomeFromNavRef.current = false;
     setWelcomeAlreadyRead(true);
     setShowWelcome(false);
     startMusicNow();
     touchActivity('celebrating', 3000);
     setSaplingTip('Yay! Welcome to Bang Khun Thian! Let’s cook & protect the mangroves!');
 
-    if (!wasReopened || !hasDoneChefSetup) {
+    if (!openedFromNav) {
       setDraftExplorer(stateRef.current.explorer);
       setIsOpeningSetup(true);
       setShowExplorerModal(true);
@@ -712,15 +699,64 @@ export default function App() {
     });
   };
 
-  const handleResetGame = () => {
-    if (window.confirm('Reset your mangrove progress and start fresh?')) {
-      const fresh = createInitialState();
-      fresh.theme = state.theme;
-      setState(fresh);
-      setSaplingTip(null);
-      touchActivity('idle');
-      showToast('Progress reset—fresh coastal seed planted!');
+  const handleRequestReset = () => {
+    setResetIncludeChef(false);
+    setShowResetModal(true);
+  };
+
+  const handleConfirmReset = () => {
+    cuteAudio.playPop(540);
+    const fresh = createInitialState();
+    fresh.theme = state.theme;
+    fresh.lang = state.lang;
+    if (!resetIncludeChef) {
+      fresh.explorer = state.explorer;
+    } else {
+      try {
+        localStorage.removeItem(CHEF_SETUP_KEY);
+        localStorage.removeItem(WELCOME_KEY);
+      } catch {
+        // Ignore storage errors
+      }
     }
+
+    skipNextCloudWriteRef.current = true;
+    setState(fresh);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh));
+    } catch {
+      // Ignore storage errors
+    }
+
+    if (authUser) {
+      setCloudSyncing(true);
+      void saveUserProgressToCloud(
+        authUser.uid,
+        fresh as CloudProgressPayload,
+        cloudDocExistsRef.current
+      )
+        .then(() => {
+          cloudDocExistsRef.current = true;
+        })
+        .catch(() => {
+          // Handled in firebase.ts
+        })
+        .finally(() => setCloudSyncing(false));
+    }
+
+    setCookingDish(null);
+    setSaplingTip(null);
+    setActiveSection('menus');
+    touchActivity('idle');
+    setShowResetModal(false);
+
+    if (resetIncludeChef) {
+      reopenedWelcomeFromNavRef.current = false;
+      setWelcomeAlreadyRead(false);
+      setShowWelcome(true);
+    }
+
+    showToast('Progress reset—fresh coastal seed planted!');
   };
 
   const quests = [
@@ -765,9 +801,10 @@ export default function App() {
               e.preventDefault();
               setActiveSection('menus');
             }}
-            className="text-lg sm:text-2xl font-bold text-[var(--ink-main)] whitespace-nowrap shrink-0 truncate max-w-[190px] sm:max-w-none"
+            className="flex items-center gap-2 text-lg sm:text-2xl font-bold text-[var(--ink-main)] whitespace-nowrap shrink-0 truncate max-w-[220px] sm:max-w-none"
           >
-            {t.appTitle}
+            <OfficialPixelSprite name="mangrove" size={30} />
+            <span className="truncate">{t.appTitle}</span>
           </a>
 
           <nav
@@ -820,6 +857,7 @@ export default function App() {
               type="button"
               onClick={() => {
                 cuteAudio.playPop(620);
+                reopenedWelcomeFromNavRef.current = true;
                 setWelcomeAlreadyRead(true);
                 setShowWelcome(true);
               }}
@@ -871,7 +909,7 @@ export default function App() {
         {/* BLUE SKY & CLOUDS HEAD DIVIDER */}
         <div className="relative w-full h-14 sm:h-20 overflow-hidden border-t-[3px] border-[var(--outline)]">
           <img
-            src="/assets/aistudio/a5205a89_9a1bfb81.jpg"
+            src={`${import.meta.env.BASE_URL}assets/aistudio/a5205a89_9a1bfb81.jpg`}
             alt="Blue sky and fluffy clouds head divider"
             referrerPolicy="no-referrer"
             className="h-full w-full object-cover object-center"
@@ -913,6 +951,7 @@ export default function App() {
           type="button"
           onClick={() => {
             cuteAudio.playPop(620);
+            reopenedWelcomeFromNavRef.current = true;
             setWelcomeAlreadyRead(true);
             setShowWelcome(true);
           }}
@@ -929,8 +968,13 @@ export default function App() {
           <div className="px-tape mx-auto w-40 -mt-8 mb-4" aria-hidden="true" />
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
             <div className="flex-1 min-w-0">
-              <div className="text-xs font-bold tracking-wide text-[var(--accent-mint)]">
-                + BANG KHUN THIAN + · เมนูที่เลี้ยงป่าชายเลน
+              <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                <span className="px-box bg-[var(--accent-butter)]/75 px-2.5 py-1 text-xs sm:text-sm font-bold text-[var(--ink-main)] inline-flex items-center gap-1.5">
+                  <span>{getChefGreeting(state.lang, state.explorer.name)}</span>
+                </span>
+                <span className="text-xs font-bold tracking-wide text-[var(--accent-mint)]">
+                  + BANG KHUN THIAN + · เมนูที่เลี้ยงป่าชายเลน
+                </span>
               </div>
               <h1 className="text-2xl sm:text-4xl font-bold text-[var(--ink-main)] mt-1 leading-tight text-balance">
                 {t.heroTitle}
@@ -938,6 +982,15 @@ export default function App() {
               <p className="mt-2 text-sm sm:text-base text-[var(--ink-soft)]">
                 {t.heroSteps}
               </p>
+              <div className="mt-3 flex flex-wrap items-center gap-2" aria-hidden="true">
+                <OfficialPixelSprite name="mangrove" size={26} />
+                <OfficialPixelSprite name="crab" size={24} />
+                <OfficialPixelSprite name="shrimp" size={24} />
+                <OfficialPixelSprite name="cockle1" size={22} />
+                <OfficialPixelSprite name="mussel" size={22} />
+                <OfficialPixelSprite name="oyster" size={22} />
+                <OfficialPixelSprite name="jellyfish" size={24} />
+              </div>
             </div>
 
             <div className="flex flex-col gap-3 shrink-0 lg:w-64">
@@ -1088,6 +1141,7 @@ export default function App() {
               setIsOpeningSetup(false);
               setShowExplorerModal(true);
             }}
+            onResetProgress={handleRequestReset}
           />
         </div>
 
@@ -1099,10 +1153,13 @@ export default function App() {
           <span>Menu That Feeds a Mangrove · Bang Khun Thian Coastal Cafe Game</span>
           <button
             type="button"
-            onClick={handleResetGame}
+            onClick={() => {
+              cuteAudio.playPop(520);
+              handleRequestReset();
+            }}
             className="underline hover:text-[var(--accent-primary)] font-bold"
           >
-            Reset progress
+            {t.resetProgressBtn}
           </button>
         </div>
       </footer>
@@ -1441,6 +1498,59 @@ export default function App() {
                   {t.cancel}
                 </button>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Reset Progress Confirmation Modal */}
+      {showResetModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#18283a]/60 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="reset-modal-title"
+          onClick={() => setShowResetModal(false)}
+        >
+          <div
+            className="px-card max-w-md w-full bg-[#FFFDF9] p-6 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-tape mx-auto w-28 -mt-8 mb-3" aria-hidden="true" />
+            <h2 id="reset-modal-title" className="text-2xl font-bold text-[var(--ink-main)]">
+              {t.resetModalTitle}
+            </h2>
+            <p className="mt-2 text-sm text-[var(--ink-soft)] leading-snug">
+              {t.resetModalDesc}
+            </p>
+
+            <label className="mt-4 px-box bg-[var(--surface-tint)]/45 p-3 flex items-center gap-2.5 cursor-pointer text-xs font-bold text-[var(--ink-main)]">
+              <input
+                type="checkbox"
+                checked={resetIncludeChef}
+                onChange={(e) => setResetIncludeChef(e.target.checked)}
+                className="h-4 w-4 accent-[var(--accent-primary)]"
+              />
+              <span>{t.resetKeepChefOption}</span>
+            </label>
+
+            <div className="mt-5 flex gap-3">
+              <button
+                type="button"
+                onClick={handleConfirmReset}
+                className="px-btn flex-1 bg-[#C93B68] py-2.5 text-sm font-bold text-white"
+              >
+                {t.resetConfirmBtn}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  cuteAudio.playPop(640);
+                  setShowResetModal(false);
+                }}
+                className="px-btn bg-[var(--surface-tint)] px-4 py-2.5 text-sm font-bold text-[var(--ink-main)]"
+              >
+                {t.cancel}
+              </button>
             </div>
           </div>
         </div>

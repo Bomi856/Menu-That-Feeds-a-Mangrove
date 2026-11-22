@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { User } from 'firebase/auth';
 import { SAPLING_STAGES, WardrobeItem } from '../data/gameData';
-import { AppLang, PRONOUN_OPTIONS, PronounId, UI_TEXT } from '../data/i18n';
+import { AppLang, getChefGreeting, PRONOUN_OPTIONS, PronounId, UI_TEXT } from '../data/i18n';
 import { cuteAudio } from '../utils/audio';
 import {
   ExplorerAvatar,
@@ -55,6 +55,7 @@ interface SanctuarySidebarProps {
   onFeedShell: () => void;
   onClaimDaily: () => void;
   onEditExplorer: () => void;
+  onResetProgress: () => void;
 }
 
 export const SanctuarySidebar: React.FC<SanctuarySidebarProps> = ({
@@ -84,6 +85,7 @@ export const SanctuarySidebar: React.FC<SanctuarySidebarProps> = ({
   onFeedShell,
   onClaimDaily,
   onEditExplorer,
+  onResetProgress,
 }) => {
   const [isBlinking, setIsBlinking] = useState(false);
   const [editingSaplingName, setEditingSaplingName] = useState(false);
@@ -321,6 +323,9 @@ export const SanctuarySidebar: React.FC<SanctuarySidebarProps> = ({
               size={64}
             />
             <div className="min-w-0">
+              <div className="text-[11px] font-bold text-[var(--accent-primary)] truncate">
+                {getChefGreeting(lang, explorer.name)}
+              </div>
               <div className="flex items-center gap-1.5 flex-wrap">
                 <div className="text-base font-bold text-[var(--ink-main)] leading-tight truncate">
                   {explorer.name}
@@ -418,6 +423,19 @@ export const SanctuarySidebar: React.FC<SanctuarySidebarProps> = ({
             </li>
           ))}
         </ul>
+
+        <div className="mt-3 pt-3 border-t-2 border-dashed border-[var(--outline)]/20 flex justify-end">
+          <button
+            type="button"
+            onClick={() => {
+              cuteAudio.playPop(500);
+              onResetProgress();
+            }}
+            className="px-btn bg-white hover:bg-[#FFF0F4] px-3 py-1.5 text-xs font-bold text-[#B83260]"
+          >
+            {t.resetProgressBtn}
+          </button>
+        </div>
       </div>
     </aside>
   );

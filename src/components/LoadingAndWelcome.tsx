@@ -77,7 +77,7 @@ export const CuteLoadingScreen: React.FC<CuteLoadingScreenProps> = ({
           เมนูที่เลี้ยงป่าชายเลน · ဒီရေတောကို ကျွေးမွေးတဲ့ မီနူး
         </div>
 
-        {/* Single bouncing cute mascot */}
+        {/* Single bouncing mascot */}
         <div className="my-5 flex items-center justify-center">
           <div className="mascot-hop">
             <PixelMascotIllustration size={124} />

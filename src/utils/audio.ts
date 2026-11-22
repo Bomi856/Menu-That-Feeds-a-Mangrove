@@ -3,8 +3,8 @@
 export type MusicTrackId = 'cafe' | 'lullaby' | 'magnetic' | 'illegal';
 
 const MP3_TRACKS: Partial<Record<MusicTrackId, string>> = {
-  magnetic: '/assets/aistudio/ILLIT________Magnetic__Instrumental_-_ONECOER__128k__893f18e2.mp3',
-  illegal: '/assets/aistudio/PinkPantheress_-_Illegal__Official_Instrumental__-_dan__128k__653cb1e5.mp3',
+  magnetic: `${import.meta.env.BASE_URL}assets/aistudio/ILLIT________Magnetic__Instrumental_-_ONECOER__128k__893f18e2.mp3`,
+  illegal: `${import.meta.env.BASE_URL}assets/aistudio/PinkPantheress_-_Illegal__Official_Instrumental__-_dan__128k__653cb1e5.mp3`,
 };
 
 class CuteAudioEngine {

@@ -53,6 +53,7 @@ export interface UIStrings {
   paused: string;
   tapTomodachi: string;
   loadingLabel: string;
+  loadingInstructionsTitle: string;
   skipLoading: string;
   loadingFacts: [string, string, string, string];
   welcomeTitle: string;
@@ -108,6 +109,29 @@ export interface UIStrings {
   questCook: string;
   questQuiz: string;
   questFeed: string;
+  resetProgressBtn: string;
+  resetModalTitle: string;
+  resetModalDesc: string;
+  resetKeepChefOption: string;
+  resetConfirmBtn: string;
+}
+
+export function getChefGreeting(lang: AppLang, name: string): string {
+  const safeName = name.trim() || 'Coastal Chef';
+  const hour = new Date().getHours();
+  if (lang === 'th') {
+    if (hour >= 5 && hour < 12) return `สวัสดีตอนเช้า, ${safeName}!`;
+    if (hour >= 12 && hour < 17) return `สวัสดีตอนบ่าย, ${safeName}!`;
+    return `สวัสดีตอนเย็น, ${safeName}!`;
+  }
+  if (lang === 'my') {
+    if (hour >= 5 && hour < 12) return `မင်္ဂလာနံနက်ခင်းပါ, ${safeName}!`;
+    if (hour >= 12 && hour < 17) return `မင်္ဂလာနေ့လယ်ခင်းပါ, ${safeName}!`;
+    return `မင်္ဂလာညနေခင်းပါ, ${safeName}!`;
+  }
+  if (hour >= 5 && hour < 12) return `Good morning, ${safeName}!`;
+  if (hour >= 12 && hour < 17) return `Good afternoon, ${safeName}!`;
+  return `Good evening, ${safeName}!`;
 }
 
 export const UI_TEXT: Record<AppLang, UIStrings> = {
@@ -127,6 +151,7 @@ export const UI_TEXT: Record<AppLang, UIStrings> = {
     paused: 'Paused',
     tapTomodachi: 'Tap!',
     loadingLabel: 'LOADING KITCHEN & SANCTUARY...',
+    loadingInstructionsTitle: 'HOW TO PLAY · QUICK INSTRUCTIONS',
     skipLoading: 'Skip loading →',
     loadingFacts: [
       'Mangrove prop roots trap coastal mud and shelter baby river prawns!',
@@ -168,8 +193,8 @@ export const UI_TEXT: Record<AppLang, UIStrings> = {
     customTitle: 'Customize Your Coastal Chef',
     customOpeningBadge: 'WELCOME! CREATE YOUR COASTAL CHEF',
     avatarStyleLabel: 'Avatar Style',
-    girlVersion: 'Girl Version',
-    boyVersion: 'Boy Version',
+    girlVersion: 'Fem',
+    boyVersion: 'Masc',
     whatCallYou: 'What should we call you?',
     pronounsLabel: 'Pronouns',
     hairstyleLabel: 'Hairstyle',
@@ -208,6 +233,12 @@ export const UI_TEXT: Record<AppLang, UIStrings> = {
     questCook: 'Cook 2 menu dishes',
     questQuiz: 'Answer 1 eco-quiz',
     questFeed: 'Feed 3 shells to Tomodachi',
+    resetProgressBtn: 'Reset Progress',
+    resetModalTitle: 'Reset Game Progress?',
+    resetModalDesc:
+      'This will reset your shells, mangrove growth, sapling name, cooked dishes, eco-quizzes, wardrobe unlocks, and daily streak back to the beginning.',
+    resetKeepChefOption: 'Also reset chef name, avatar & re-open setup',
+    resetConfirmBtn: 'Yes, Reset Progress',
   },
   th: {
     appTitle: 'เมนูที่เลี้ยงป่าชายเลน',
@@ -225,6 +256,7 @@ export const UI_TEXT: Record<AppLang, UIStrings> = {
     paused: 'หยุดชั่วคราว',
     tapTomodachi: 'แตะทักทาย!',
     loadingLabel: 'กำลังเตรียมครัวและป่าชายเลน...',
+    loadingInstructionsTitle: 'วิธีเล่น · คำแนะนำเบื้องต้น',
     skipLoading: 'ข้ามหน้าโหลด →',
     loadingFacts: [
       'รากค้ำจุนของต้นโกงกางช่วยกักตะกอนดินและเป็นที่หลบภัยของลูกกุ้งแม่น้ำ!',
@@ -266,8 +298,8 @@ export const UI_TEXT: Record<AppLang, UIStrings> = {
     customTitle: 'สร้างตัวละครเชฟชายฝั่งของคุณ',
     customOpeningBadge: 'ยินดีต้อนรับ! สร้างเชฟชายฝั่งของคุณ',
     avatarStyleLabel: 'รูปแบบตัวละคร',
-    girlVersion: 'เวอร์ชันผู้หญิง',
-    boyVersion: 'เวอร์ชันผู้ชาย',
+    girlVersion: 'เวอร์ชัน Fem',
+    boyVersion: 'เวอร์ชัน Masc',
     whatCallYou: 'ให้เราเรียกคุณว่าอะไรดี?',
     pronounsLabel: 'สรรพนาม (Pronouns)',
     hairstyleLabel: 'ทรงผม',
@@ -306,6 +338,12 @@ export const UI_TEXT: Record<AppLang, UIStrings> = {
     questCook: 'ปรุงอาหาร 2 เมนู',
     questQuiz: 'ตอบควิซสิ่งแวดล้อม 1 ข้อ',
     questFeed: 'ป้อนเปลือกหอย 3 ชิ้น',
+    resetProgressBtn: 'รีเซ็ตความก้าวหน้า',
+    resetModalTitle: 'รีเซ็ตความก้าวหน้าในเกมไหม?',
+    resetModalDesc:
+      'การรีเซ็ตจะล้างเปลือกหอย การเติบโตของต้นกล้า ชื่อต้นกล้า เมนูที่ปรุงแล้ว ควิซ ไอเท็มตู้เสื้อผ้า และสถิติรายวันกลับเป็นเริ่มต้น',
+    resetKeepChefOption: 'รีเซ็ตชื่อ อวาตาร์เชฟ และเปิดหน้าสร้างตัวละครใหม่ด้วย',
+    resetConfirmBtn: 'ยืนยันรีเซ็ต',
   },
   my: {
     appTitle: 'ဒီရေတောကို ကျွေးမွေးတဲ့ မီနူး',
@@ -323,6 +361,7 @@ export const UI_TEXT: Record<AppLang, UIStrings> = {
     paused: 'ရပ်ထားသည်',
     tapTomodachi: 'နှိပ်ပါ!',
     loadingLabel: 'မီးဖိုချောင်နှင့် ဒီရေတောကို ပြင်ဆင်နေသည်...',
+    loadingInstructionsTitle: 'ကစားနည်း · လမ်းညွှန်ချက်များ',
     skipLoading: 'ကျော်သွားရန် →',
     loadingFacts: [
       'ဒီရေတောအမြစ်များသည် ရွှံ့နွံများကို ထိန်းသိမ်းပေးပြီး ပုစွန်သားပေါက်များကို ကာကွယ်ပေးသည်!',
@@ -364,8 +403,8 @@ export const UI_TEXT: Record<AppLang, UIStrings> = {
     customTitle: 'သင့်ကမ်းရိုးတန်း စားဖိုမှူးဇာတ်ကောင် ပြင်ဆင်ပါ',
     customOpeningBadge: 'ကြိုဆိုပါတယ်! သင့်စားဖိုမှူးဇာတ်ကောင် ဖန်တီးပါ',
     avatarStyleLabel: 'ဇာတ်ကောင်ပုံစံ',
-    girlVersion: 'မိန်းကလေးပုံစံ',
-    boyVersion: 'ယောကျ်ားလေးပုံစံ',
+    girlVersion: 'Fem ပုံစံ',
+    boyVersion: 'Masc ပုံစံ',
     whatCallYou: 'သင့်ကို ဘယ်လိုခေါ်ရမလဲ?',
     pronounsLabel: 'နာမ်စား (Pronouns)',
     hairstyleLabel: 'ဆံပင်ပုံစံ',
@@ -404,5 +443,11 @@ export const UI_TEXT: Record<AppLang, UIStrings> = {
     questCook: 'ဟင်းလျာ ၂ မျိုး ချက်ပြုတ်ပါ',
     questQuiz: 'ဉာဏ်စမ်းမေးခွန်း ၁ ခု ဖြေဆိုပါ',
     questFeed: 'Tomodachi ကို ခရုခွံ ၃ ခု ကျွေးပါ',
+    resetProgressBtn: 'တိုးတက်မှု ပြန်စမည်',
+    resetModalTitle: 'ကစားထားသော တိုးတက်မှုများကို ပြန်စမလား?',
+    resetModalDesc:
+      'ခရုခွံများ၊ ပျိုးပင်ကြီးထွားမှု၊ ပျိုးပင်အမည်၊ ချက်ပြီးသားဟင်းများ၊ ဉာဏ်စမ်းမေးခွန်း၊ အဝတ်အစားများနှင့် နေ့စဉ်မှတ်တမ်းများကို အစမှ ပြန်စပါမည်။',
+    resetKeepChefOption: 'စားဖိုမှူးအမည်၊ ရုပ်ပုံနှင့် စတင်ပြင်ဆင်မှုကိုပါ ပြန်စမည်',
+    resetConfirmBtn: 'ဟုတ်ကဲ့၊ ပြန်စမည်',
   },
 };

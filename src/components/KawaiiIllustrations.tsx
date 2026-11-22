@@ -1,9 +1,274 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { AVATAR_COLORS, DishId, IngredientId, WardrobeItem } from '../data/gameData';
 
-export type TomodachiMood = 'idle' | 'happy' | 'celebrating' | 'sad';
+export type OfficialSpriteId =
+  | 'cockle1'
+  | 'cockle2'
+  | 'shell'
+  | 'squid'
+  | 'mussel'
+  | 'bun'
+  | 'shrimp'
+  | 'octopus'
+  | 'seaweed'
+  | 'mangrove'
+  | 'drink'
+  | 'crab'
+  | 'oyster'
+  | 'dessert'
+  | 'fish'
+  | 'jellyfish'
+  | 'cockleSalad'
+  | 'oysterOmelette'
+  | 'papayaOyster'
+  | 'crabRoeDip'
+  | 'pickledCrabSomTum'
+  | 'shrimpBlite'
+  | 'sourCurryBlite'
+  | 'sourCurryChaOm'
+  | 'nipaGelato'
+  | 'crepeCake'
+  | 'cloudMilk'
+  | 'tomodachiStage0'
+  | 'tomodachiStage1'
+  | 'tomodachiStage2'
+  | 'wardrobeHat'
+  | 'wardrobeCan'
+  | 'wardrobeChime'
+  | 'wardrobeCrown';
 
-const STROKE = '#5B2A4A';
+export const OFFICIAL_SPRITE_FILES: Record<OfficialSpriteId, string> = {
+  cockle1: '1000052768_c252a4e9.jpg',
+  cockle2: '1000052768__1__c252a4e9.jpg',
+  shell: '1000052769_448ac2a9.jpg',
+  squid: 'SAVE_20261122_173533_9b645919.jpg',
+  mussel: 'SAVE_20261122_173543_220733bb.jpg',
+  bun: '1000052771_f95ff58f.jpg',
+  shrimp: 'SAVE_20261122_173641_2811c5ec.jpg',
+  octopus: 'SAVE_20261122_173650_847402cf.jpg',
+  seaweed: 'SAVE_20261122_173524_42782de7.jpg',
+  mangrove: '1000052770_eab569f4.jpg',
+  drink: 'SAVE_20261122_173455_2890910b.jpg',
+  crab: 'SAVE_20261122_173516_310d7836.jpg',
+  oyster: 'SAVE_20261122_173600_41dd6840.jpg',
+  dessert: 'SAVE_20261122_173551_31e8e2f6.jpg',
+  fish: 'SAVE_20261122_173608_94bc6fca.jpg',
+  jellyfish: 'SAVE_20261122_173616_26929a4e.jpg',
+  cockleSalad: 'pixel_cockle_salad_1795345894570.jpg',
+  oysterOmelette: 'pixel_oyster_omelette_1795345894882.jpg',
+  papayaOyster: 'pixel_papaya_oyster_1795345893972.jpg',
+  crabRoeDip: 'pixel_crab_roe_dip_1795345894531.jpg',
+  pickledCrabSomTum: 'pixel_pickled_crab_somtum_1795345894908.jpg',
+  shrimpBlite: 'pixel_shrimp_blite_1795345894314.jpg',
+  sourCurryBlite: 'pixel_sour_curry_blite_1795345911186.jpg',
+  sourCurryChaOm: 'pixel_sour_curry_chaom_1795345914292.jpg',
+  nipaGelato: 'pixel_nipa_gelato_1795345914357.jpg',
+  crepeCake: 'pixel_crepe_cake_1795345914530.jpg',
+  cloudMilk: 'pixel_cloud_milk_1795345914853.jpg',
+  tomodachiStage0: 'tomodachi_stage0_green_seed_1795349453099.jpg',
+  tomodachiStage1: 'tomodachi_stage1_sprout_1795346317657.jpg',
+  tomodachiStage2: 'tomodachi_stage2_green_sapling_1795349453966.jpg',
+  wardrobeHat: 'wardrobe_straw_hat_1795346318050.jpg',
+  wardrobeCan: 'wardrobe_watering_can_1795346318115.jpg',
+  wardrobeChime: 'wardrobe_shell_chime_1795346318675.jpg',
+  wardrobeCrown: 'wardrobe_blossom_crown_1795346316827.jpg',
+};
+
+const SPRITE_EXTRA_SEEDS: Partial<Record<OfficialSpriteId, Array<[number, number]>>> = {
+  wardrobeCrown: [[0.5, 0.5]],
+  wardrobeChime: [[0.5, 0.12]],
+};
+
+const spriteDataCache = new Map<string, string>();
+const spritePromiseCache = new Map<string, Promise<string>>();
+
+function getOfficialSpriteUrl(name: OfficialSpriteId): string {
+  return `${import.meta.env.BASE_URL}assets/aistudio/${OFFICIAL_SPRITE_FILES[name]}`;
+}
+
+function makeTransparentPixelSprite(
+  rawUrl: string,
+  extraSeeds?: Array<[number, number]>
+): Promise<string> {
+  const cached = spriteDataCache.get(rawUrl);
+  if (cached) return Promise.resolve(cached);
+  const existing = spritePromiseCache.get(rawUrl);
+  if (existing) return existing;
+
+  const promise = new Promise<string>((resolve) => {
+    if (typeof window === 'undefined') {
+      resolve(rawUrl);
+      return;
+    }
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try {
+        const w = img.naturalWidth || img.width;
+        const h = img.naturalHeight || img.height;
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        if (!ctx) {
+          resolve(rawUrl);
+          return;
+        }
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(img, 0, 0);
+        const imgData = ctx.getImageData(0, 0, w, h);
+        const data = imgData.data;
+
+        const isNearBlack = (idx: number) => {
+          const p = idx * 4;
+          return data[p] <= 34 && data[p + 1] <= 34 && data[p + 2] <= 34;
+        };
+
+        // Flood-fill from all 4 borders so inner dark eyes/outlines stay intact
+        const total = w * h;
+        const visited = new Uint8Array(total);
+        const queue = new Int32Array(total);
+        let head = 0;
+        let tail = 0;
+
+        const enqueue = (idx: number) => {
+          if (visited[idx]) return;
+          if (!isNearBlack(idx)) return;
+          visited[idx] = 1;
+          queue[tail++] = idx;
+        };
+
+        for (let x = 0; x < w; x++) {
+          enqueue(x);
+          enqueue((h - 1) * w + x);
+        }
+        for (let y = 0; y < h; y++) {
+          enqueue(y * w);
+          enqueue(y * w + (w - 1));
+        }
+        if (extraSeeds) {
+          for (const [nx, ny] of extraSeeds) {
+            const sx = Math.max(0, Math.min(w - 1, Math.floor(nx * w)));
+            const sy = Math.max(0, Math.min(h - 1, Math.floor(ny * h)));
+            enqueue(sy * w + sx);
+          }
+        }
+
+        while (head < tail) {
+          const idx = queue[head++];
+          data[idx * 4 + 3] = 0;
+          const x = idx % w;
+          const y = (idx - x) / w;
+          if (x > 0) enqueue(idx - 1);
+          if (x < w - 1) enqueue(idx + 1);
+          if (y > 0) enqueue(idx - w);
+          if (y < h - 1) enqueue(idx + w);
+        }
+
+        // Crop tightly around opaque pixels & center inside a crisp square canvas
+        let minX = w;
+        let minY = h;
+        let maxX = -1;
+        let maxY = -1;
+        for (let y = 0; y < h; y++) {
+          for (let x = 0; x < w; x++) {
+            const a = data[(y * w + x) * 4 + 3];
+            if (a > 0) {
+              if (x < minX) minX = x;
+              if (x > maxX) maxX = x;
+              if (y < minY) minY = y;
+              if (y > maxY) maxY = y;
+            }
+          }
+        }
+
+        if (maxX < minX || maxY < minY) {
+          resolve(rawUrl);
+          return;
+        }
+
+        ctx.putImageData(imgData, 0, 0);
+        const cropW = maxX - minX + 1;
+        const cropH = maxY - minY + 1;
+        const box = Math.max(cropW, cropH) + 6;
+        const out = document.createElement('canvas');
+        out.width = box;
+        out.height = box;
+        const octx = out.getContext('2d');
+        if (!octx) {
+          resolve(rawUrl);
+          return;
+        }
+        octx.imageSmoothingEnabled = false;
+        const dx = Math.floor((box - cropW) / 2);
+        const dy = Math.floor((box - cropH) / 2);
+        octx.drawImage(canvas, minX, minY, cropW, cropH, dx, dy, cropW, cropH);
+
+        const pngUrl = out.toDataURL('image/png');
+        spriteDataCache.set(rawUrl, pngUrl);
+        resolve(pngUrl);
+      } catch {
+        resolve(rawUrl);
+      }
+    };
+    img.onerror = () => resolve(rawUrl);
+    img.src = rawUrl;
+  });
+
+  spritePromiseCache.set(rawUrl, promise);
+  return promise;
+}
+
+export const OfficialPixelSprite: React.FC<{
+  name: OfficialSpriteId;
+  size?: number;
+  alt?: string;
+  className?: string;
+}> = ({ name, size = 48, alt = '', className = '' }) => {
+  const rawUrl = getOfficialSpriteUrl(name);
+  const extraSeeds = SPRITE_EXTRA_SEEDS[name];
+  const [src, setSrc] = useState<string>(() => spriteDataCache.get(rawUrl) || '');
+
+  useEffect(() => {
+    let active = true;
+    const cached = spriteDataCache.get(rawUrl);
+    if (cached) {
+      setSrc(cached);
+      return;
+    }
+    void makeTransparentPixelSprite(rawUrl, extraSeeds).then((png) => {
+      if (active) setSrc(png);
+    });
+    return () => {
+      active = false;
+    };
+  }, [rawUrl, extraSeeds]);
+
+  if (!src) {
+    return (
+      <span
+        style={{ width: size, height: size }}
+        className={`inline-block shrink-0 ${className}`}
+        aria-hidden={!alt}
+      />
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      width={size}
+      height={size}
+      style={{ width: size, height: size }}
+      className={`pixel-art inline-block shrink-0 object-contain select-none ${className}`}
+      aria-hidden={!alt}
+      draggable={false}
+    />
+  );
+};
+
+export type TomodachiMood = 'idle' | 'happy' | 'celebrating' | 'sad';
 
 // Rich pastel pixel-art palette for food icons, dividers, and UI sprites
 const PAL: Record<string, string> = {
@@ -146,41 +411,50 @@ export const PixelMusicPlayerIcon: React.FC<{ playing: boolean; size?: number }>
   </div>
 );
 
-// === PIXEL DIVIDERS ===
+// === PIXEL DIVIDERS (featuring official pixel art sprites) ===
 export const PixelDivider: React.FC<{
-  variant?: 'hearts' | 'shells' | 'stars' | 'crab' | 'leaf';
+  variant?: 'hearts' | 'shells' | 'stars' | 'crab' | 'leaf' | 'ocean' | 'seafood';
   label?: string;
 }> = ({ variant = 'shells', label }) => {
-  const heartGrid = ['.oo.oo.', 'opppppo', 'opwpppo', '.oppPo.', '..opo..', '...o...'];
-  const starGrid = ['...o...', '..oyo..', 'ooyyyoo', '.oyyyo.', 'ooy.yoo', 'o.....o'];
-  const shellGrid = ['..ooo..', '.oykyo.', 'oskkkyo', 'osskssy', '.ooyoo.'];
-  const crabGrid = ['o.....o', '.o.oo.o', '.orrrro', 'orrwrrro', '.oorroo'];
-  const leafGrid = ['...oo..', '..ogGo.', '.ogGGGo', 'ogGggo.', 'o..oo..'];
-
-  const sprite =
-    variant === 'stars'
-      ? starGrid
-      : variant === 'shells'
-      ? shellGrid
-      : variant === 'crab'
-      ? crabGrid
+  const leftSprite: OfficialSpriteId =
+    variant === 'crab'
+      ? 'crab'
       : variant === 'leaf'
-      ? leafGrid
-      : heartGrid;
+      ? 'mangrove'
+      : variant === 'ocean'
+      ? 'jellyfish'
+      : variant === 'seafood'
+      ? 'squid'
+      : variant === 'stars'
+      ? 'jellyfish'
+      : 'shell';
+
+  const rightSprite: OfficialSpriteId =
+    variant === 'crab'
+      ? 'shrimp'
+      : variant === 'leaf'
+      ? 'seaweed'
+      : variant === 'ocean'
+      ? 'octopus'
+      : variant === 'seafood'
+      ? 'fish'
+      : variant === 'stars'
+      ? 'shell'
+      : 'cockle2';
 
   return (
     <div className="my-5 flex items-center justify-center gap-3 select-none" aria-hidden="true">
       <div className="h-[3px] flex-1 bg-[repeating-linear-gradient(90deg,var(--outline)_0_5px,transparent_5px_10px)] opacity-35" />
       <div className="flex items-center gap-2 px-1">
-        {renderPixelGrid(sprite, 16)}
+        <OfficialPixelSprite name={leftSprite} size={22} />
         {label ? (
           <span className="text-xs font-bold tracking-wider uppercase text-[var(--ink-soft)]">
             {label}
           </span>
         ) : (
-          renderPixelGrid(starGrid, 14)
+          <OfficialPixelSprite name="shell" size={18} />
         )}
-        {renderPixelGrid(sprite, 16)}
+        <OfficialPixelSprite name={rightSprite} size={22} />
       </div>
       <div className="h-[3px] flex-1 bg-[repeating-linear-gradient(90deg,var(--outline)_0_5px,transparent_5px_10px)] opacity-35" />
     </div>
@@ -248,254 +522,41 @@ export const PixelMascotIllustration: React.FC<{ size?: number }> = ({ size = 84
   </svg>
 );
 
-// === PIXEL SEASHELL TOKEN (Pearlescent Coastal Ivory & Sand-Gold) ===
+// === OFFICIAL PIXEL SEASHELL TOKEN ===
 export const ShellIllustration: React.FC<{ size?: number; className?: string }> = ({
   size = 36,
   className = '',
-}) =>
-  renderPixelGrid(
-    [
-      '....oooooo....',
-      '..oossssssoo..',
-      '.osyswsyswsyo.',
-      'osyswskskswsyo',
-      'osysookookysyo',
-      'osyswskskswsyo',
-      '.ossyswsyssso.',
-      '..oossYYssoo..',
-      '....oooooo....',
-      '.....oYYo.....',
-    ],
-    size,
-    undefined,
-    className
-  );
+}) => <OfficialPixelSprite name="shell" size={size} className={className} />;
 
-// === CUTE PIXEL FOOD SPRITES FOR ALL BANG KHUN THIAN DISHES & TREATS ===
-const DISH_GRIDS: Record<DishId, string[]> = {
-  cockleSalad: [
-    '....gg....oo....',
-    '...gGGg..orro...',
-    '..oossssoossso..',
-    '.osnnsnnsnnsnso.',
-    'osnnsnnsnnsnnsno',
-    '.osnoonoonsnsso.',
-    '..olllooooosso..',
-    '.oppppppppppppo.',
-    '..oooooooooooo..',
-  ],
-  blanchedCockles: [
-    '......oooo......',
-    '...ooossssooo...',
-    '..osnsnsnsnsso..',
-    '.osnsnsnsnsnsso.',
-    '.osnoonoonsnsso.',
-    '..osssssssssso..',
-    '.occccccccccccwo',
-    '..oooorrrroooo..',
-    '....oooooooo....',
-  ],
-  steamedMussels: [
-    '....gg....gg....',
-    '...gGGg..gGGg...',
-    '..ooDDDo.oDDDoo.',
-    '.oDDDDDDoDDDDDdo',
-    'oDDyDDDDDDDDyDDo',
-    'oDDyDooonooDyDDo',
-    '.oDDDDDDDDDDDDo.',
-    '..onnnnnnnnnno..',
-    '...oooooooooo...',
-  ],
-  oysterOmelette: [
-    '...gg......gg...',
-    '..oYYooooooYYo..',
-    '.oYYYYyyyyYYYYo.',
-    'oYYysssysssyYYYo',
-    'oYYysooooosyYYYo',
-    'oYYYYssssssYYYYo',
-    '.oYYYYyyyyYYYYo.',
-    '..oPPPPPPPPPPo..',
-    '...oooooooooo...',
-  ],
-  papayaOyster: [
-    '.....oo..rr.....',
-    '...oorrooroo....',
-    '..okkkssskkko...',
-    '.okksssoooskko..',
-    '.okkkssssskkko..',
-    '..okggggggggko..',
-    '.obbbbbbbbbbbbo.',
-    '..oooooooooooo..',
-  ],
-  oysterSalad: [
-    '....ll....gg....',
-    '...olll..gGGg...',
-    '..oossssoossso..',
-    '.osssssssosssso.',
-    'osssoooosssoosso',
-    '.osssssssssssso.',
-    '..obbbbbbbbbbbo.',
-    '...ooooooooooo..',
-  ],
-  crabRoeDip: [
-    '...gg......gg...',
-    '..oYYooooooYYo..',
-    '.occcYYYYYYccco.',
-    'occcYYoYYoYYccco',
-    'occcYYYYYYYYccco',
-    '.onnnnnnnnnnnno.',
-    '.oGGGGGGGGGGGGo.',
-    '..oooooooooooo..',
-  ],
-  steamedMudCrab: [
-    '.oo..........oo.',
-    'orro........orro',
-    '.oo...oooo...oo.',
-    '...ooorrrrooo...',
-    '..orrwrrrrwrro..',
-    '.orrrrrrrrrrrro.',
-    '.orrprrrrrrprro.',
-    '..ooorrrrrrooo..',
-    '.oo..o.oo.o..oo.',
-    'o....o....o....o',
-  ],
-  pickledCrabSomTum: [
-    '....oo....rr....',
-    '..oorro..oroo...',
-    '.orrrroookkkko..',
-    '.orwrokkrrkkkko.',
-    '..oookkggggggko.',
-    '..oobbbbbbbbbbbo',
-    '...oooooooooooo.',
-  ],
-  riverPrawns: [
-    '.....oooooo.....',
-    '...ooppppppo....',
-    '..opppwppppko...',
-    '..opppooopppo...',
-    '..oppo...oppo...',
-    '...oo.....ppo...',
-    '.......oooppo...',
-    '..ollloppppppo..',
-    '..ooo..okk.ooo..',
-  ],
-  shrimpBlite: [
-    '....gg....gg....',
-    '..ogGGg..gGggo..',
-    '.ogGoppppppoGgo.',
-    '.oggopppwppoggo.',
-    '..ogopppoopoggo.',
-    '...oppppppppo...',
-    '..oppppppppppo..',
-    '...oooooooooo...',
-  ],
-  sourCurryBlite: [
-    '....gg....pp....',
-    '...gGGg..oppo...',
-    '..oRRRRRRRRRRo..',
-    '.oRRgRRppRRgRRo.',
-    '.oRRRRRRRRRRRRo.',
-    '..obbbbbbbbbbo..',
-    '...oooooooooo...',
-  ],
-  sourCurryChaOm: [
-    '....yy....pp....',
-    '...oyyo..oppo...',
-    '..oRRRRRRRRRRo..',
-    '.oRyyRRppRRyyRo.',
-    '.oRRRRRRRRRRRRo.',
-    '..onnnnnnnnnno..',
-    '...oooooooooo...',
-  ],
-  waterMimosa: [
-    '.....rr..gg.....',
-    '...oorroggGgo...',
-    '..ogGGgggGGGgo..',
-    '.ogGggggggggGgo.',
-    '..ogGgrrrrgGgo..',
-    '.occccccccccccwo',
-    '..oooooooooooo..',
-  ],
-  nipaGelato: [
-    '....oooooo....',
-    '...occccccwo..',
-    '..occbbccbbco.',
-    '.ogggggggggggo',
-    '.occcooccoocco',
-    '..ooooooooooo.',
-    '..obbbbbbbbbo.',
-    '...obbbbbbbo..',
-    '....ooooooo...',
-    '......ooo.....',
-    '....ooooooo...',
-  ],
-  honeyFizz: [
-    '........oo....',
-    '.......obbo...',
-    '..ooo..ob.....',
-    '.oyyyoobbbboo.',
-    '.oylyooyyyybo.',
-    '..ooooyyyyyyo.',
-    '..obyyyyyyyyo.',
-    '..obyyooyyyyo.',
-    '..obyyyyyyyyo.',
-    '..obbbbbbbbbo.',
-    '...ooooooooo..',
-  ],
-  crepeCake: [
-    '......oo......',
-    '.....orrro....',
-    '....occccco...',
-    '...onnnnnnno..',
-    '..occccccccco.',
-    '..oYYYYYYYYYo.',
-    '..occccccccco.',
-    '..oYYYYYYYYYo.',
-    '.obbbbbbbbbbbo',
-    '..ooooooooooo.',
-  ],
-  berryFloat: [
-    '.......oo.....',
-    '......obbo....',
-    '....oooooooo..',
-    '...occcrrccco.',
-    '..occcccccccco',
-    '..obbbbbbbbbbo',
-    '..obbbwbbwbbbo',
-    '..obbbbbbbbbbo',
-    '...obbbbbbbbo.',
-    '....oooooooo..',
-  ],
-  matchaBottle: [
-    '.....oooo.....',
-    '....ogggggo...',
-    '.....ooooo....',
-    '....obbbbbo...',
-    '...obwwwwwbo..',
-    '...obwoowwbo..',
-    '...obwwwwwbo..',
-    '...oyyyyyyyo..',
-    '...oyyyyyyyo..',
-    '....ooooooo...',
-  ],
-  palmTart: [
-    '......oo......',
-    '.....orrrro...',
-    '....occcccco..',
-    '...occcbbccco.',
-    '..occcccccccco',
-    '.onnnnnnnnnnno',
-    '.onYYnYYnYYnno',
-    '..onnnnnnnnno.',
-    '...ooooooooo..',
-  ],
+// === OFFICIAL PIXEL FOOD SPRITES FOR ALL BANG KHUN THIAN DISHES & TREATS ===
+const DISH_SPRITE_MAP: Record<DishId, OfficialSpriteId> = {
+  cockleSalad: 'cockleSalad',
+  blanchedCockles: 'cockle1',
+  steamedMussels: 'mussel',
+  oysterOmelette: 'oysterOmelette',
+  papayaOyster: 'papayaOyster',
+  oysterSalad: 'oyster',
+  crabRoeDip: 'crabRoeDip',
+  steamedMudCrab: 'crab',
+  pickledCrabSomTum: 'pickledCrabSomTum',
+  riverPrawns: 'shrimp',
+  shrimpBlite: 'shrimpBlite',
+  sourCurryChaOm: 'sourCurryChaOm',
+  sourCurryBlite: 'sourCurryBlite',
+  waterMimosa: 'seaweed',
+  nipaGelato: 'nipaGelato',
+  berryFloat: 'dessert',
+  honeyFizz: 'drink',
+  matchaBottle: 'cloudMilk',
+  crepeCake: 'crepeCake',
+  palmTart: 'bun',
 };
 
 export const DishIllustration: React.FC<{ id: DishId; size?: number; className?: string }> = ({
   id,
   size = 64,
   className = '',
-}) => renderPixelGrid(DISH_GRIDS[id], size, undefined, className);
+}) => <OfficialPixelSprite name={DISH_SPRITE_MAP[id]} size={size} className={className} />;
 
 // === PIXEL INGREDIENT SPRITES ===
 const INGREDIENT_GRIDS: Record<IngredientId, string[]> = {
@@ -617,63 +678,35 @@ const INGREDIENT_GRIDS: Record<IngredientId, string[]> = {
 export const IngredientIllustration: React.FC<{ id: IngredientId; size?: number }> = ({
   id,
   size = 40,
-}) => renderPixelGrid(INGREDIENT_GRIDS[id], size);
+}) => {
+  if (id === 'seablite' || id === 'herbs') {
+    return <OfficialPixelSprite name="seaweed" size={size} />;
+  }
+  if (id === 'honey') {
+    return <OfficialPixelSprite name="drink" size={size} />;
+  }
+  if (id === 'nipa') {
+    return <OfficialPixelSprite name="bun" size={size} />;
+  }
+  return renderPixelGrid(INGREDIENT_GRIDS[id], size);
+};
 
-// === CUTE WARDROBE ACCESSORY ICONS ===
+// === OFFICIAL 16-BIT PIXEL WARDROBE ACCESSORY SPRITES ===
 export const WardrobeIllustration: React.FC<{ id: WardrobeItem['id']; size?: number }> = ({
   id,
   size = 44,
 }) => {
   switch (id) {
     case 'hat':
-      return (
-        <svg viewBox="0 0 48 48" width={size} height={size} aria-hidden="true">
-          <ellipse cx="24" cy="31" rx="18" ry="6" fill="#FFE49C" stroke={STROKE} strokeWidth="2.4" />
-          <path d="M15 30 C15 17, 33 17, 33 30 Z" fill="#FFD673" stroke={STROKE} strokeWidth="2.4" />
-          <path d="M16 26 L32 26" stroke="#F08A9B" strokeWidth="3.5" strokeLinecap="round" />
-        </svg>
-      );
+      return <OfficialPixelSprite name="wardrobeHat" size={size} />;
     case 'crab':
-      return (
-        <svg viewBox="0 0 48 48" width={size} height={size} aria-hidden="true">
-          <path d="M12 22 C8 16, 15 13, 18 19 Z" fill="#FF927B" stroke={STROKE} strokeWidth="2.2" />
-          <path d="M36 22 C40 16, 33 13, 30 19 Z" fill="#FF927B" stroke={STROKE} strokeWidth="2.2" />
-          <ellipse cx="24" cy="29" rx="11" ry="8" fill="#FF9D87" stroke={STROKE} strokeWidth="2.4" />
-          <circle cx="20.5" cy="28" r="1.5" fill={STROKE} />
-          <circle cx="27.5" cy="28" r="1.5" fill={STROKE} />
-          <circle cx="20" cy="27.3" r="0.6" fill="#FFFFFF" />
-          <circle cx="27" cy="27.3" r="0.6" fill="#FFFFFF" />
-          <path d="M22.5 30.5 Q24 32 25.5 30.5" fill="none" stroke={STROKE} strokeWidth="1.5" strokeLinecap="round" />
-        </svg>
-      );
+      return <OfficialPixelSprite name="crab" size={size} />;
     case 'can':
-      return (
-        <svg viewBox="0 0 48 48" width={size} height={size} aria-hidden="true">
-          <path d="M16 22 L10 15" stroke={STROKE} strokeWidth="2.8" strokeLinecap="round" />
-          <circle cx="9" cy="14" r="3" fill="#B5E8FA" stroke={STROKE} strokeWidth="2" />
-          <rect x="16" y="19" width="17" height="16" rx="4" fill="#FFABC0" stroke={STROKE} strokeWidth="2.4" />
-          <path d="M33 21 C39 21, 39 32, 33 32" fill="none" stroke={STROKE} strokeWidth="2.5" />
-        </svg>
-      );
+      return <OfficialPixelSprite name="wardrobeCan" size={size} />;
     case 'chime':
-      return (
-        <svg viewBox="0 0 48 48" width={size} height={size} aria-hidden="true">
-          <path d="M12 16 L36 16" stroke={STROKE} strokeWidth="3" strokeLinecap="round" />
-          <path d="M17 16 L17 26 M24 16 L24 30 M31 16 L31 25" stroke={STROKE} strokeWidth="1.8" />
-          <circle cx="17" cy="28" r="3.5" fill="#FFDDE6" stroke={STROKE} strokeWidth="2" />
-          <circle cx="24" cy="32" r="4" fill="#D5F4FF" stroke={STROKE} strokeWidth="2" />
-          <circle cx="31" cy="27" r="3.5" fill="#FFF0AE" stroke={STROKE} strokeWidth="2" />
-        </svg>
-      );
+      return <OfficialPixelSprite name="wardrobeChime" size={size} />;
     case 'crown':
-      return (
-        <svg viewBox="0 0 48 48" width={size} height={size} aria-hidden="true">
-          <path d="M12 28 Q24 21 36 28" fill="none" stroke="#68B979" strokeWidth="3.5" strokeLinecap="round" />
-          <circle cx="15" cy="25" r="4.5" fill="#FFD1DE" stroke={STROKE} strokeWidth="2" />
-          <circle cx="24" cy="22" r="5" fill="#FFF3A8" stroke={STROKE} strokeWidth="2" />
-          <circle cx="33" cy="25" r="4.5" fill="#CBEFFF" stroke={STROKE} strokeWidth="2" />
-        </svg>
-      );
+      return <OfficialPixelSprite name="wardrobeCrown" size={size} />;
   }
 };
 
@@ -688,7 +721,7 @@ function adjustHex(hex: string, delta: number): string {
   return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
 }
 
-// === FINE PASTEL PIXEL-ART LIVING MANGROVE TOMODACHI (inspired by reference aesthetic) ===
+// === 16-BIT RETRO PIXEL-ART LIVING MANGROVE TOMODACHI ===
 export const SaplingIllustration: React.FC<{
   stage: number;
   equipped: WardrobeItem['id'][];
@@ -706,314 +739,253 @@ export const SaplingIllustration: React.FC<{
       ? 'tomodachi-sad'
       : 'tomodachi-idle';
 
-  // Pixel face coordinates inside 56x48 canvas (x center = 28)
-  const faceY = safeStage === 0 ? 31 : safeStage === 1 ? 26 : safeStage === 2 ? 18 : 17;
+  const stageSprite: OfficialSpriteId =
+    safeStage === 0
+      ? 'tomodachiStage0'
+      : safeStage === 1
+      ? 'tomodachiStage1'
+      : safeStage === 2
+      ? 'tomodachiStage2'
+      : 'mangrove';
 
-  const renderPixelFace = (cx: number, cy: number) => {
-    const lx = cx - 5;
-    const rx = cx + 3;
-    return (
-      <g>
-        {/* Soft pastel pixel cheek blush */}
-        <rect x={lx - 2} y={cy + 3} width="2" height="1" fill="#FFA6C2" />
-        <rect x={rx + 2} y={cy + 3} width="2" height="1" fill="#FFA6C2" />
+  const stageSpriteSize =
+    safeStage === 0
+      ? Math.round(size * 0.46)
+      : safeStage === 1
+      ? Math.round(size * 0.56)
+      : safeStage === 2
+      ? Math.round(size * 0.62)
+      : Math.round(size * 0.66);
 
-        {mood === 'celebrating' || mood === 'happy' ? (
-          <>
-            {/* Joyful ^ ^ pixel eyes */}
-            <rect x={lx - 1} y={cy + 1} width="1" height="1" fill="#422636" />
-            <rect x={lx} y={cy} width="2" height="1" fill="#422636" />
-            <rect x={lx + 2} y={cy + 1} width="1" height="1" fill="#422636" />
-            <rect x={rx - 1} y={cy + 1} width="1" height="1" fill="#422636" />
-            <rect x={rx} y={cy} width="2" height="1" fill="#422636" />
-            <rect x={rx + 2} y={cy + 1} width="1" height="1" fill="#422636" />
-            {/* Happy rosy smile */}
-            <rect x={cx - 1} y={cy + 3} width="2" height="1" fill="#FF7CA8" />
-            <rect x={cx - 2} y={cy + 2} width="1" height="1" fill="#422636" />
-            <rect x={cx + 1} y={cy + 2} width="1" height="1" fill="#422636" />
-          </>
-        ) : mood === 'sad' ? (
-          <>
-            {/* Droopy worried pixel brows */}
-            <rect x={lx - 1} y={cy - 1} width="2" height="1" fill="#5B3647" />
-            <rect x={rx + 1} y={cy - 1} width="2" height="1" fill="#5B3647" />
-            {/* Glossy watery eyes */}
-            <rect x={lx} y={cy} width="2" height="2" fill="#3F2433" />
-            <rect x={lx} y={cy} width="1" height="1" fill="#FFFFFF" />
-            <rect x={lx + 1} y={cy + 1} width="1" height="1" fill="#9DE3FA" />
-            <rect x={rx} y={cy} width="2" height="2" fill="#3F2433" />
-            <rect x={rx} y={cy} width="1" height="1" fill="#FFFFFF" />
-            <rect x={rx + 1} y={cy + 1} width="1" height="1" fill="#9DE3FA" />
-            {/* Cute blue pixel teardrop */}
-            <rect x={lx - 1} y={cy + 2} width="1" height="2" fill="#77D4FA" />
-            <rect x={lx - 1} y={cy + 4} width="1" height="1" fill="#499CD1" />
-            {/* Tiny sad pout */}
-            <rect x={cx - 1} y={cy + 3} width="2" height="1" fill="#422636" />
-            <rect x={cx - 2} y={cy + 4} width="1" height="1" fill="#422636" />
-            <rect x={cx + 1} y={cy + 4} width="1" height="1" fill="#422636" />
-          </>
-        ) : isBlinking ? (
-          <>
-            {/* Soft closed pixel eyelashes */}
-            <rect x={lx - 1} y={cy + 1} width="3" height="1" fill="#422636" />
-            <rect x={rx} y={cy + 1} width="3" height="1" fill="#422636" />
-            <rect x={cx - 1} y={cy + 3} width="2" height="1" fill="#E884A4" />
-          </>
-        ) : (
-          <>
-            {/* Dreamy glossy anime-pixel eyes matching reference! */}
-            <rect x={lx - 1} y={cy} width="3" height="1" fill="#3D222E" />
-            <rect x={lx} y={cy + 1} width="1" height="1" fill="#FFFFFF" />
-            <rect x={lx + 1} y={cy + 1} width="1" height="1" fill="#C95986" />
-            <rect x={lx} y={cy + 2} width="2" height="1" fill="#FF9FC2" />
+  const stageBottomClass =
+    safeStage === 0
+      ? 'bottom-[19%]'
+      : safeStage === 1
+      ? 'bottom-[18%]'
+      : safeStage === 2
+      ? 'bottom-[16%]'
+      : 'bottom-[15%]';
 
-            <rect x={rx} y={cy} width="3" height="1" fill="#3D222E" />
-            <rect x={rx} y={cy + 1} width="1" height="1" fill="#FFFFFF" />
-            <rect x={rx + 1} y={cy + 1} width="1" height="1" fill="#C95986" />
-            <rect x={rx} y={cy + 2} width="2" height="1" fill="#FF9FC2" />
+  // Position animated 16-bit pixel face cleanly on the green seed belly (stage 0) or green canopy (stages 1–3)
+  const faceBottomClass =
+    safeStage === 0
+      ? 'bottom-[29%]'
+      : safeStage === 1
+      ? 'bottom-[48%]'
+      : safeStage === 2
+      ? 'bottom-[44%]'
+      : 'bottom-[50%]';
 
-            {/* Sweet tiny rose mouth */}
-            <rect x={cx - 1} y={cy + 3} width="2" height="1" fill="#E884A4" />
-          </>
-        )}
-      </g>
-    );
-  };
+  const hatBottomClass =
+    safeStage === 0
+      ? 'bottom-[49%]'
+      : safeStage === 1
+      ? 'bottom-[60%]'
+      : safeStage === 2
+      ? 'bottom-[66%]'
+      : 'bottom-[68%]';
+
+  const crownBottomClass =
+    safeStage === 0
+      ? 'bottom-[47%]'
+      : safeStage === 1
+      ? 'bottom-[57%]'
+      : safeStage === 2
+      ? 'bottom-[63%]'
+      : 'bottom-[65%]';
+
+  const boxHeight = Math.round((size * 48) / 56);
+  const faceWidth = Math.max(12, Math.round(size * 0.18));
 
   return (
-    <svg
-      viewBox="0 0 56 48"
-      width={size}
-      height={Math.round((size * 48) / 56)}
-      shapeRendering="crispEdges"
-      className="pixel-art"
+    <div
+      className="relative inline-block overflow-hidden select-none"
+      style={{ width: size, height: boxHeight }}
       aria-hidden="true"
     >
-      {/* Pastel Pixel Sky & Clouds */}
-      <rect x="1" y="1" width="54" height="31" fill="#E9F8FF" />
-      {/* Pixel Sun */}
-      <rect x="44" y="4" width="6" height="6" fill="#FFE896" />
-      <rect x="45" y="5" width="4" height="4" fill="#FFF7CC" />
-      {/* Fluffy Pixel Clouds */}
-      <rect x="5" y="6" width="8" height="2" fill="#FFFFFF" />
-      <rect x="7" y="5" width="4" height="1" fill="#FFFFFF" />
-      <rect x="33" y="9" width="7" height="2" fill="#FFFFFF" />
-      <rect x="35" y="8" width="3" height="1" fill="#FFFFFF" />
+      {/* Clean Simplified Pixel Coastal Sky, Water & Mudflat Island (earlier minimal backdrop) */}
+      <svg
+        viewBox="0 0 56 48"
+        width={size}
+        height={boxHeight}
+        shapeRendering="crispEdges"
+        className="pixel-art block"
+      >
+        {/* Pastel Pixel Sky & Clouds */}
+        <rect x="1" y="1" width="54" height="31" fill={mood === 'sad' ? '#DCEBFA' : '#E9F8FF'} />
+        {/* Pixel Sun */}
+        <rect x="44" y="4" width="6" height="6" fill="#FFE896" />
+        <rect x="45" y="5" width="4" height="4" fill="#FFF7CC" />
+        {/* Fluffy Pixel Clouds */}
+        <rect x="5" y="6" width="8" height="2" fill="#FFFFFF" />
+        <rect x="7" y="5" width="4" height="1" fill="#FFFFFF" />
+        <rect x="33" y="9" width="7" height="2" fill="#FFFFFF" />
+        <rect x="35" y="8" width="3" height="1" fill="#FFFFFF" />
 
-      {/* Shimmering Aqua Coastal Water */}
-      <rect x="1" y="31" width="54" height="16" fill="#BCEBFB" />
-      <rect x="4" y="33" width="6" height="1" fill="#FFFFFF" />
-      <rect x="42" y="35" width="7" height="1" fill="#FFFFFF" />
-      <rect x="9" y="39" width="4" height="1" fill="#E8FAFF" />
+        {/* Shimmering Aqua Coastal Water */}
+        <rect x="1" y="31" width="54" height="16" fill={mood === 'sad' ? '#A8D8EE' : '#BCEBFB'} />
+        <rect x="4" y="33" width="6" height="1" fill="#FFFFFF" />
+        <rect x="42" y="35" width="7" height="1" fill="#FFFFFF" />
+        <rect x="9" y="39" width="4" height="1" fill="#E8FAFF" />
 
-      {/* Warm Sandy Mudflat Island */}
-      <rect x="10" y="36" width="36" height="2" fill="#EED2B5" />
-      <rect x="8" y="38" width="40" height="5" fill="#E8C6A4" />
-      <rect x="11" y="43" width="34" height="2" fill="#D5AE89" />
-      <rect x="10" y="35" width="36" height="1" fill="#5B2A4A" opacity="0.25" />
+        {/* Warm Sandy Mudflat Island */}
+        <rect x="10" y="36" width="36" height="2" fill="#EED2B5" />
+        <rect x="8" y="38" width="40" height="5" fill="#E8C6A4" />
+        <rect x="11" y="43" width="34" height="2" fill="#D5AE89" />
+        <rect x="10" y="35" width="36" height="1" fill="#5B2A4A" opacity="0.2" />
 
-      {/* Protective Pastel Shell Bio-Barrier */}
-      <rect x="14" y="40" width="4" height="2" fill="#FFD1E1" />
-      <rect x="15" y="39" width="2" height="1" fill="#FFF3F7" />
-      <rect x="20" y="41" width="4" height="2" fill="#FFF3D4" />
-      <rect x="21" y="40" width="2" height="1" fill="#FFFFFF" />
-      <rect x="26" y="41" width="4" height="2" fill="#FFD1E1" />
-      <rect x="27" y="40" width="2" height="1" fill="#FFF3F7" />
-      <rect x="32" y="41" width="4" height="2" fill="#FFF3D4" />
-      <rect x="33" y="40" width="2" height="1" fill="#FFFFFF" />
-      <rect x="38" y="40" width="4" height="2" fill="#FFD1E1" />
-      <rect x="39" y="39" width="2" height="1" fill="#FFF3F7" />
+        {/* Protective Simple Shell Bio-Barrier */}
+        <rect x="14" y="40" width="4" height="2" fill="#FFD1E1" />
+        <rect x="15" y="39" width="2" height="1" fill="#FFF3F7" />
+        <rect x="20" y="41" width="4" height="2" fill="#FFF3D4" />
+        <rect x="21" y="40" width="2" height="1" fill="#FFFFFF" />
+        <rect x="26" y="41" width="4" height="2" fill="#FFD1E1" />
+        <rect x="27" y="40" width="2" height="1" fill="#FFF3F7" />
+        <rect x="32" y="41" width="4" height="2" fill="#FFF3D4" />
+        <rect x="33" y="40" width="2" height="1" fill="#FFFFFF" />
+        <rect x="38" y="40" width="4" height="2" fill="#FFD1E1" />
+        <rect x="39" y="39" width="2" height="1" fill="#FFF3F7" />
 
-      {/* Pixel Frame Outline */}
-      <rect x="0" y="0" width="56" height="1" fill="#5B2A4A" />
-      <rect x="0" y="47" width="56" height="1" fill="#5B2A4A" />
-      <rect x="0" y="0" width="1" height="48" fill="#5B2A4A" />
-      <rect x="55" y="0" width="1" height="48" fill="#5B2A4A" />
+        {/* Crisp Pixel Frame Outline */}
+        <rect x="0" y="0" width="56" height="1" fill="#5B2A4A" />
+        <rect x="0" y="47" width="56" height="1" fill="#5B2A4A" />
+        <rect x="0" y="0" width="1" height="48" fill="#5B2A4A" />
+        <rect x="55" y="0" width="1" height="48" fill="#5B2A4A" />
+      </svg>
 
-      {/* Alive Animated Pastel Pixel Tomodachi */}
-      <g className={animClass} style={{ transformOrigin: '28px 36px' }}>
-        {safeStage === 0 && (
-          <g>
-            {/* Stage 0: Plump Pastel Coastal Seed */}
-            <rect x="26" y="21" width="4" height="1" fill="#482A3B" />
-            <rect x="28" y="22" width="3" height="2" fill="#77D484" />
-            <rect x="24" y="24" width="8" height="1" fill="#482A3B" />
-            <rect x="22" y="25" width="1" height="2" fill="#482A3B" />
-            <rect x="23" y="25" width="10" height="12" fill="#A5EA9F" />
-            <rect x="33" y="25" width="1" height="2" fill="#482A3B" />
-            <rect x="21" y="27" width="1" height="10" fill="#482A3B" />
-            <rect x="22" y="27" width="12" height="10" fill="#A5EA9F" />
-            <rect x="34" y="27" width="1" height="10" fill="#482A3B" />
-            {/* Cute highlight & soft bottom shade */}
-            <rect x="24" y="26" width="3" height="2" fill="#D2F9CB" />
-            <rect x="22" y="35" width="12" height="2" fill="#7ED485" />
-            <rect x="22" y="37" width="12" height="1" fill="#482A3B" />
-            {renderPixelFace(28, faceY)}
-          </g>
-        )}
-
-        {safeStage === 1 && (
-          <g>
-            {/* Stage 1: Plush Tide Sprout Buddy */}
-            {/* Stem */}
-            <rect x="27" y="31" width="2" height="6" fill="#9E6E54" />
-            <rect x="26" y="31" width="1" height="6" fill="#482A3B" />
-            <rect x="29" y="31" width="1" height="6" fill="#482A3B" />
-            {/* Twin perky side leaves */}
-            <rect x="17" y="18" width="5" height="1" fill="#482A3B" />
-            <rect x="16" y="19" width="7" height="3" fill="#95E493" />
-            <rect x="18" y="19" width="3" height="1" fill="#C9F8C2" />
-            <rect x="17" y="22" width="5" height="1" fill="#482A3B" />
-
-            <rect x="34" y="18" width="5" height="1" fill="#482A3B" />
-            <rect x="33" y="19" width="7" height="3" fill="#75CD7D" />
-            <rect x="35" y="19" width="3" height="1" fill="#A5EBA2" />
-            <rect x="34" y="22" width="5" height="1" fill="#482A3B" />
-
-            {/* Plump Sprout Head */}
-            <rect x="24" y="21" width="8" height="1" fill="#482A3B" />
-            <rect x="22" y="22" width="12" height="1" fill="#A6EB9F" />
-            <rect x="21" y="22" width="1" height="2" fill="#482A3B" />
-            <rect x="34" y="22" width="1" height="2" fill="#482A3B" />
-            <rect x="20" y="24" width="1" height="6" fill="#482A3B" />
-            <rect x="21" y="23" width="14" height="8" fill="#A6EB9F" />
-            <rect x="35" y="24" width="1" height="6" fill="#482A3B" />
-            <rect x="23" y="23" width="4" height="1" fill="#D5FACD" />
-            <rect x="22" y="30" width="12" height="1" fill="#7DD382" />
-            <rect x="22" y="31" width="12" height="1" fill="#482A3B" />
-            {renderPixelFace(28, faceY)}
-          </g>
-        )}
-
-        {safeStage === 2 && (
-          <g>
-            {/* Stage 2: Rooted Sapling Buddy with Prop Roots */}
-            <rect x="27" y="25" width="2" height="12" fill="#9E6E54" />
-            <rect x="26" y="25" width="1" height="6" fill="#482A3B" />
-            <rect x="29" y="25" width="1" height="6" fill="#482A3B" />
-            {/* Arching mangrove prop roots */}
-            <rect x="23" y="29" width="3" height="2" fill="#8B5C44" />
-            <rect x="21" y="31" width="2" height="6" fill="#8B5C44" />
-            <rect x="30" y="29" width="3" height="2" fill="#8B5C44" />
-            <rect x="33" y="31" width="2" height="6" fill="#8B5C44" />
-            {/* Side leaves */}
-            <rect x="16" y="17" width="4" height="3" fill="#81D886" />
-            <rect x="36" y="17" width="4" height="3" fill="#6EC676" />
-            {/* Fluffy Canopy Head */}
-            <rect x="23" y="12" width="10" height="1" fill="#482A3B" />
-            <rect x="20" y="13" width="16" height="12" fill="#A4E89E" />
-            <rect x="19" y="15" width="1" height="8" fill="#482A3B" />
-            <rect x="36" y="15" width="1" height="8" fill="#482A3B" />
-            <rect x="20" y="13" width="3" height="1" fill="#482A3B" />
-            <rect x="33" y="13" width="3" height="1" fill="#482A3B" />
-            <rect x="22" y="14" width="4" height="2" fill="#D5FACD" />
-            <rect x="20" y="23" width="16" height="2" fill="#7AD180" />
-            <rect x="21" y="25" width="14" height="1" fill="#482A3B" />
-            {renderPixelFace(28, faceY)}
-          </g>
-        )}
-
-        {safeStage >= 3 && (
-          <g>
-            {/* Stage 3: Lush Blooming Mangrove Buddy */}
-            <rect x="26" y="23" width="4" height="14" fill="#9E6E54" />
-            <rect x="25" y="24" width="1" height="7" fill="#482A3B" />
-            <rect x="30" y="24" width="1" height="7" fill="#482A3B" />
-            {/* Dense prop roots */}
-            <rect x="22" y="28" width="3" height="2" fill="#8B5C44" />
-            <rect x="19" y="30" width="2" height="7" fill="#8B5C44" />
-            <rect x="23" y="31" width="2" height="6" fill="#7D4F38" />
-            <rect x="31" y="28" width="3" height="2" fill="#8B5C44" />
-            <rect x="35" y="30" width="2" height="7" fill="#8B5C44" />
-            <rect x="31" y="31" width="2" height="6" fill="#7D4F38" />
-
-            {/* Side Canopy Clouds */}
-            <rect x="14" y="14" width="8" height="10" fill="#7CCF81" />
-            <rect x="13" y="16" width="1" height="6" fill="#482A3B" />
-            <rect x="34" y="14" width="8" height="10" fill="#7CCF81" />
-            <rect x="42" y="16" width="1" height="6" fill="#482A3B" />
-
-            {/* Center Canopy Crown */}
-            <rect x="22" y="10" width="12" height="1" fill="#482A3B" />
-            <rect x="19" y="11" width="18" height="13" fill="#A4E89E" />
-            <rect x="21" y="12" width="5" height="2" fill="#D5FACD" />
-            <rect x="19" y="22" width="18" height="2" fill="#79CE7F" />
-            <rect x="20" y="24" width="16" height="1" fill="#482A3B" />
-            {/* Pastel blossoms */}
-            <rect x="16" y="16" width="2" height="2" fill="#FFF3A8" />
-            <rect x="38" y="17" width="2" height="2" fill="#FFB8CF" />
-            <rect x="22" y="12" width="2" height="2" fill="#FFD2E2" />
-            {renderPixelFace(28, faceY)}
-          </g>
-        )}
-
-        {/* Floating Pixel Sparkles & Sprout Star when Happy/Celebrating */}
-        {(mood === 'celebrating' || mood === 'happy') && (
-          <g>
-            {/* Aqua coastal music/sparkle burst */}
-            <rect x="12" y="10" width="1" height="3" fill="#68BEE8" />
-            <rect x="11" y="11" width="3" height="1" fill="#68BEE8" />
-            <rect x="12" y="11" width="1" height="1" fill="#FFFFFF" />
-            {/* Golden pixel sparkle */}
-            <rect x="42" y="12" width="1" height="3" fill="#FFE27A" />
-            <rect x="41" y="13" width="3" height="1" fill="#FFE27A" />
-          </g>
-        )}
-
-        {/* Wardrobe Accessories in matching Pastel Pixel Art */}
-        {has('hat') && (
-          <g transform={`translate(19, ${safeStage === 0 ? 18 : safeStage === 1 ? 15 : 5})`}>
-            <rect x="4" y="0" width="10" height="1" fill="#482A3B" />
-            <rect x="3" y="1" width="12" height="3" fill="#FFE08B" />
-            <rect x="3" y="3" width="12" height="1" fill="#FF92B3" />
-            <rect x="0" y="4" width="18" height="2" fill="#FFE8A8" />
-            <rect x="1" y="6" width="16" height="1" fill="#482A3B" />
-          </g>
-        )}
-        {has('crown') && (
-          <g transform={`translate(21, ${safeStage === 0 ? 20 : safeStage === 1 ? 17 : 7})`}>
-            <rect x="1" y="1" width="3" height="3" fill="#FFD1E1" />
-            <rect x="5" y="0" width="4" height="3" fill="#FFF3A8" />
-            <rect x="10" y="1" width="3" height="3" fill="#CBEFFF" />
-            <rect x="2" y="3" width="10" height="1" fill="#59BA7C" />
-          </g>
-        )}
-        {has('chime') && (
-          <g transform="translate(8, 12)">
-            <rect x="0" y="0" width="9" height="1" fill="#482A3B" />
-            <rect x="1" y="1" width="1" height="3" fill="#482A3B" />
-            <rect x="4" y="1" width="1" height="4" fill="#482A3B" />
-            <rect x="7" y="1" width="1" height="3" fill="#482A3B" />
-            <rect x="0" y="4" width="3" height="2" fill="#FFD2E2" />
-            <rect x="3" y="5" width="3" height="2" fill="#C9F2FF" />
-            <rect x="6" y="4" width="3" height="2" fill="#FFF0A8" />
-          </g>
-        )}
-      </g>
-
-      {/* Mudflat Pals (Crab & Watering Can) */}
-      {has('crab') && (
-        <g transform="translate(38, 30)">
-          <rect x="1" y="0" width="2" height="2" fill="#FF8C75" />
-          <rect x="7" y="0" width="2" height="2" fill="#FF8C75" />
-          <rect x="2" y="2" width="6" height="4" fill="#FF9B85" />
-          <rect x="1" y="3" width="1" height="2" fill="#482A3B" />
-          <rect x="8" y="3" width="1" height="2" fill="#482A3B" />
-          <rect x="3" y="3" width="1" height="1" fill="#482A3B" />
-          <rect x="6" y="3" width="1" height="1" fill="#482A3B" />
-          <rect x="2" y="6" width="6" height="1" fill="#482A3B" />
-        </g>
+      {/* Chime Accessory hanging from upper-left sky corner */}
+      {has('chime') && (
+        <div className="pointer-events-none absolute top-[5%] left-[5%] z-20 animate-float-slow">
+          <OfficialPixelSprite name="wardrobeChime" size={Math.max(12, Math.round(size * 0.19))} />
+        </div>
       )}
+
+      {/* Watering Can resting beside mudflat */}
       {has('can') && (
-        <g transform="translate(8, 30)">
-          <rect x="0" y="1" width="2" height="1" fill="#FFE38A" />
-          <rect x="2" y="2" width="1" height="2" fill="#243F59" />
-          <rect x="3" y="2" width="5" height="5" fill="#7AC6F0" />
-          <rect x="8" y="3" width="2" height="3" fill="#243F59" />
-          <rect x="3" y="7" width="5" height="1" fill="#243F59" />
-        </g>
+        <div className="pointer-events-none absolute bottom-[16%] left-[8%] z-20">
+          <OfficialPixelSprite name="wardrobeCan" size={Math.max(12, Math.round(size * 0.19))} />
+        </div>
       )}
-    </svg>
+
+      {/* Living Animated 16-Bit Tomodachi Sprite + Crisp Pixel Face */}
+      <div
+        className={`pointer-events-none absolute inset-x-0 ${stageBottomClass} z-10 flex justify-center ${animClass}`}
+      >
+        <OfficialPixelSprite name={stageSprite} size={stageSpriteSize} />
+      </div>
+
+      {/* Expressive Animated 16-Bit Pixel Face Overlay (synced with Tomodachi animation) */}
+      <div
+        className={`pointer-events-none absolute inset-x-0 ${faceBottomClass} z-20 flex justify-center ${animClass}`}
+      >
+        <svg
+          viewBox="0 0 18 9"
+          width={faceWidth}
+          height={Math.round(faceWidth * 0.5)}
+          shapeRendering="crispEdges"
+          className="pixel-art drop-shadow-[0_1px_0_rgba(255,255,255,0.28)]"
+        >
+          {/* Warm coral-peach pixel cheek blush */}
+          <rect x="2" y="5" width="2" height="1" fill="#FF9E80" />
+          <rect x="14" y="5" width="2" height="1" fill="#FF9E80" />
+
+          {mood === 'celebrating' || mood === 'happy' ? (
+            <>
+              {/* Joyful ^ ^ pixel eyes */}
+              <rect x="4" y="3" width="1" height="1" fill="#23140E" />
+              <rect x="5" y="2" width="1" height="1" fill="#23140E" />
+              <rect x="6" y="3" width="1" height="1" fill="#23140E" />
+
+              <rect x="11" y="3" width="1" height="1" fill="#23140E" />
+              <rect x="12" y="2" width="1" height="1" fill="#23140E" />
+              <rect x="13" y="3" width="1" height="1" fill="#23140E" />
+
+              {/* Happy little smile */}
+              <rect x="7" y="5" width="1" height="1" fill="#23140E" />
+              <rect x="8" y="6" width="2" height="1" fill="#FF7B6B" />
+              <rect x="10" y="5" width="1" height="1" fill="#23140E" />
+            </>
+          ) : mood === 'sad' ? (
+            <>
+              {/* Worried brows */}
+              <rect x="4" y="1" width="2" height="1" fill="#23140E" />
+              <rect x="12" y="1" width="2" height="1" fill="#23140E" />
+              {/* Glossy watery eyes */}
+              <rect x="4" y="2" width="2" height="3" fill="#23140E" />
+              <rect x="4" y="2" width="1" height="1" fill="#FFFFFF" />
+              <rect x="5" y="4" width="1" height="1" fill="#7CE0FF" />
+              <rect x="12" y="2" width="2" height="3" fill="#23140E" />
+              <rect x="12" y="2" width="1" height="1" fill="#FFFFFF" />
+              <rect x="13" y="4" width="1" height="1" fill="#7CE0FF" />
+              {/* Pixel teardrop */}
+              <rect x="3" y="5" width="1" height="2" fill="#63D2FF" />
+              {/* Tiny sad pout */}
+              <rect x="8" y="6" width="2" height="1" fill="#23140E" />
+              <rect x="7" y="7" width="1" height="1" fill="#23140E" />
+              <rect x="10" y="7" width="1" height="1" fill="#23140E" />
+            </>
+          ) : isBlinking ? (
+            <>
+              {/* Crisp pixel blink */}
+              <rect x="4" y="4" width="3" height="1" fill="#23140E" />
+              <rect x="11" y="4" width="3" height="1" fill="#23140E" />
+              <rect x="8" y="6" width="2" height="1" fill="#23140E" />
+            </>
+          ) : (
+            <>
+              {/* Crisp 16-bit glossy dark eyes with white pixel highlight */}
+              <rect x="4" y="2" width="2" height="3" fill="#23140E" />
+              <rect x="4" y="2" width="1" height="1" fill="#FFFFFF" />
+              <rect x="12" y="2" width="2" height="3" fill="#23140E" />
+              <rect x="12" y="2" width="1" height="1" fill="#FFFFFF" />
+              {/* Cozy pixel smile */}
+              <rect x="8" y="5" width="2" height="1" fill="#23140E" />
+            </>
+          )}
+        </svg>
+      </div>
+
+      {/* Head Accessories (Hat & Blossom Crown) worn cleanly over the canopy */}
+      {has('crown') && (
+        <div
+          className={`pointer-events-none absolute inset-x-0 ${crownBottomClass} z-30 flex justify-center ${animClass}`}
+        >
+          <OfficialPixelSprite name="wardrobeCrown" size={Math.max(15, Math.round(size * 0.25))} />
+        </div>
+      )}
+      {has('hat') && (
+        <div
+          className={`pointer-events-none absolute inset-x-0 ${hatBottomClass} z-30 flex justify-center ${animClass}`}
+        >
+          <OfficialPixelSprite name="wardrobeHat" size={Math.max(16, Math.round(size * 0.27))} />
+        </div>
+      )}
+
+      {/* Happy / Celebrating 16-bit Pixel Sparkles */}
+      {(mood === 'celebrating' || mood === 'happy') && (
+        <svg
+          viewBox="0 0 56 48"
+          width={size}
+          height={boxHeight}
+          shapeRendering="crispEdges"
+          className="pixel-art pointer-events-none absolute inset-0 z-30"
+        >
+          <rect x="12" y="11" width="1" height="3" fill="#FFF39A" />
+          <rect x="11" y="12" width="3" height="1" fill="#FFF39A" />
+          <rect x="12" y="12" width="1" height="1" fill="#FFFFFF" />
+          <rect x="43" y="13" width="1" height="3" fill="#FFE066" />
+          <rect x="42" y="14" width="3" height="1" fill="#FFE066" />
+          <rect x="43" y="14" width="1" height="1" fill="#FFFFFF" />
+        </svg>
+      )}
+
+      {/* Official Mud Crab Pal resting on right edge of mudflat */}
+      {has('crab') && (
+        <div className="pointer-events-none absolute right-[8%] bottom-[16%] z-20">
+          <OfficialPixelSprite name="crab" size={Math.max(12, Math.round(size * 0.21))} />
+        </div>
+      )}
+    </div>
   );
 };
 
