@@ -127,6 +127,7 @@ export interface CloudProgressPayload {
   dailyQuizzes: number;
   dailyFed: number;
   saplingName?: string;
+  activeRestaurantId?: 'jaOh' | 'lungYa' | 'ruenTalay' | 'baanChayTalay';
   explorer: {
     name: string;
     gender?: 'girl' | 'boy';
@@ -165,6 +166,11 @@ function sanitizePayload(data: CloudProgressPayload) {
     dailyQuizzes: clampInt(data.dailyQuizzes, 0, 1000),
     dailyFed: clampInt(data.dailyFed, 0, 1000),
     saplingName: String(data.saplingName || 'Sprouty').trim().slice(0, 24) || 'Sprouty',
+    activeRestaurantId: (['jaOh', 'lungYa', 'ruenTalay', 'baanChayTalay'].includes(
+      data.activeRestaurantId || ''
+    )
+      ? data.activeRestaurantId
+      : 'jaOh') as 'jaOh' | 'lungYa' | 'ruenTalay' | 'baanChayTalay',
     explorer: {
       name: String(data.explorer?.name || 'Coastal Chef').trim().slice(0, 24) || 'Coastal Chef',
       gender: (data.explorer?.gender === 'boy' ? 'boy' : 'girl') as 'girl' | 'boy',

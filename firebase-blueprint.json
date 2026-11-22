@@ -88,6 +88,12 @@
           "maxLength": 24,
           "description": "Custom nickname for the player's Mangrove Tomodachi sapling."
         },
+        "activeRestaurantId": {
+          "type": "string",
+          "enum": ["jaOh", "lungYa", "ruenTalay", "baanChayTalay"],
+          "maxLength": 24,
+          "description": "Currently selected Bang Khun Thian restaurant stop along the coastal trail."
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time"

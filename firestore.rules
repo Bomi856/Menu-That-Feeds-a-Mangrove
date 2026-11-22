@@ -59,7 +59,7 @@ service cloud.firestore {
           'unlockedWardrobe', 'equippedWardrobe',
           'lastDaily', 'streak', 'dailyDate',
           'dailyCooked', 'dailyQuizzes', 'dailyFed',
-          'explorer', 'saplingName', 'createdAt', 'updatedAt'
+          'explorer', 'saplingName', 'activeRestaurantId', 'createdAt', 'updatedAt'
         ])
         && data.uid is string && data.uid == request.auth.uid && isValidId(data.uid)
         && data.theme is string && data.theme.size() <= 16 && data.theme in ['blue', 'green', 'pink']
@@ -83,6 +83,7 @@ service cloud.firestore {
         && (!('lang' in data) || (data.lang is string && data.lang in ['en', 'th', 'my']))
         && isValidExplorer(data.explorer)
         && (!('saplingName' in data) || (data.saplingName is string && data.saplingName.size() >= 1 && data.saplingName.size() <= 24))
+        && (!('activeRestaurantId' in data) || (data.activeRestaurantId is string && data.activeRestaurantId.size() <= 24 && data.activeRestaurantId in ['jaOh', 'lungYa', 'ruenTalay', 'baanChayTalay']))
         && data.createdAt is timestamp
         && data.updatedAt is timestamp;
     }
@@ -107,7 +108,7 @@ service cloud.firestore {
           'unlockedWardrobe', 'equippedWardrobe',
           'lastDaily', 'streak', 'dailyDate',
           'dailyCooked', 'dailyQuizzes', 'dailyFed',
-          'explorer', 'saplingName', 'updatedAt'
+          'explorer', 'saplingName', 'activeRestaurantId', 'updatedAt'
         ]);
       allow delete: if isValidId(userId) && isOwner(userId);
     }

@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
-import { Dish, DishId, MenuBoardType } from '../data/gameData';
+import {
+  Dish,
+  DishId,
+  MenuBoardType,
+  RestaurantId,
+  getDishRestaurant,
+  getRestaurantById,
+} from '../data/gameData';
 import { AppLang, UI_TEXT } from '../data/i18n';
 import { cuteAudio } from '../utils/audio';
 import {
@@ -16,6 +23,10 @@ interface InteractiveMenusProps {
   dishes: Dish[];
   activeBoard: MenuBoardType;
   onChangeBoard: (board: MenuBoardType) => void;
+  activeRestaurantId?: RestaurantId;
+  filterByActiveStop?: boolean;
+  onToggleFilterStop?: () => void;
+  onOpenMap?: () => void;
   cookedCounts: Record<string, number>;
   readStories: Record<string, boolean>;
   solvedQuizzes: Record<string, boolean>;
@@ -38,6 +49,10 @@ export const InteractiveMenus: React.FC<InteractiveMenusProps> = ({
   dishes,
   activeBoard,
   onChangeBoard,
+  activeRestaurantId = 'jaOh',
+  filterByActiveStop = false,
+  onToggleFilterStop,
+  onOpenMap,
   cookedCounts,
   readStories,
   solvedQuizzes,
@@ -52,15 +67,21 @@ export const InteractiveMenus: React.FC<InteractiveMenusProps> = ({
   const [quizFeedback, setQuizFeedback] = useState<Record<string, string>>({});
   const [coastalFilter, setCoastalFilter] = useState<string>('All');
 
+  const activeRestaurant = getRestaurantById(activeRestaurantId);
+
+  const matchesStopFilter = (d: Dish) =>
+    !filterByActiveStop || activeRestaurant.signatureDishes.includes(d.id);
+
   const coastalDishes = dishes.filter(
     (d) =>
       d.board === 'coastal' &&
+      matchesStopFilter(d) &&
       (coastalFilter === 'All' ||
         d.category === coastalFilter ||
         (coastalFilter === 'Mangrove Fauna' && d.category === 'Estuary Nursery'))
   );
-  const treatDishes = dishes.filter((d) => d.board === 'treats');
-  const activeTreatModal = treatDishes.find((d) => d.id === treatModalDishId) || null;
+  const treatDishes = dishes.filter((d) => d.board === 'treats' && matchesStopFilter(d));
+  const activeTreatModal = dishes.find((d) => d.id === treatModalDishId) || null;
 
   const toggleStory = (dish: Dish) => {
     cuteAudio.playPop(580);
@@ -97,6 +118,59 @@ export const InteractiveMenus: React.FC<InteractiveMenusProps> = ({
 
   return (
     <section aria-label="Interactive Cafe Menus">
+      {/* Active Bang Khun Thian Restaurant Stop Ribbon */}
+      <div
+        className="mb-4 px-card px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+        style={{ backgroundColor: activeRestaurant.accentBg }}
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="px-box bg-white p-1.5 shrink-0">
+            <DishIllustration id={activeRestaurant.signatureDishes[0]} size={38} />
+          </div>
+          <div className="min-w-0">
+            <div
+              className="text-[11px] font-bold uppercase tracking-wide"
+              style={{ color: activeRestaurant.accentColor }}
+            >
+              {t.mapActiveKitchenLabel} #{activeRestaurant.order} · {activeRestaurant.zone}
+            </div>
+            <div className="text-sm sm:text-base font-bold text-[var(--ink-main)] truncate">
+              {activeRestaurant.en} · {activeRestaurant.th}
+            </div>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          {onToggleFilterStop && (
+            <button
+              type="button"
+              onClick={() => {
+                cuteAudio.playPop(660);
+                onToggleFilterStop();
+              }}
+              className={`px-btn px-3 py-1.5 text-xs font-bold whitespace-nowrap ${
+                filterByActiveStop
+                  ? 'bg-[var(--accent-mint)] text-white'
+                  : 'bg-white text-[var(--ink-main)] hover:bg-[#FFF9E6]'
+              }`}
+            >
+              {filterByActiveStop ? `★ ${t.mapFilterStop}` : t.mapShowAll}
+            </button>
+          )}
+          {onOpenMap && (
+            <button
+              type="button"
+              onClick={() => {
+                cuteAudio.playPop(720);
+                onOpenMap();
+              }}
+              className="px-btn bg-[#FFE59A] px-3 py-1.5 text-xs font-bold text-[var(--ink-main)] whitespace-nowrap"
+            >
+              {t.mapViewMapBtn}
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Menu Board Switcher: Pink for Coastal Kitchen, Blue for Mangrove Sweets & Drinks */}
       <div className="mb-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
         <button
@@ -207,6 +281,8 @@ export const InteractiveMenus: React.FC<InteractiveMenusProps> = ({
                 const isOpen = expandedStoryId === dish.id;
                 const quizDone = !!solvedQuizzes[dish.id];
                 const storyRead = !!readStories[dish.id];
+                const homeStop = getDishRestaurant(dish.id);
+                const isAtActiveStop = homeStop.id === activeRestaurant.id;
 
                 return (
                   <React.Fragment key={dish.id}>
@@ -227,7 +303,10 @@ export const InteractiveMenus: React.FC<InteractiveMenusProps> = ({
                             </span>
                           </div>
                           <div className="text-xs font-semibold text-[#78485F]">
-                            {dish.ecoRole}
+                            {dish.ecoRole} ·{' '}
+                            <span className={isAtActiveStop ? 'text-[#2E8B60] font-bold' : ''}>
+                              {isAtActiveStop ? `★ ${homeStop.en}` : `@ ${homeStop.en}`}
+                            </span>
                             {count > 0 && ` · Cooked ${count}×`}
                             {quizDone && ' · Quiz ★'}
                           </div>
@@ -325,6 +404,31 @@ export const InteractiveMenus: React.FC<InteractiveMenusProps> = ({
                   </React.Fragment>
                 );
               })}
+              {coastalDishes.length === 0 && (
+                <div className="px-box bg-white p-5 text-center text-sm text-[#54233B]">
+                  <p className="font-bold">
+                    {activeRestaurant.en} highlights treats on the Blue Mangrove Sweets board!
+                  </p>
+                  <div className="mt-3 flex flex-wrap justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => onChangeBoard('treats')}
+                      className="px-btn bg-[#6BBEE8] px-4 py-2 text-xs font-bold text-white"
+                    >
+                      Open Blue Sweets Menu →
+                    </button>
+                    {onToggleFilterStop && filterByActiveStop && (
+                      <button
+                        type="button"
+                        onClick={onToggleFilterStop}
+                        className="px-btn bg-[#FFE59A] px-4 py-2 text-xs font-bold text-[#54233B]"
+                      >
+                        {t.mapShowAll}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -359,6 +463,8 @@ export const InteractiveMenus: React.FC<InteractiveMenusProps> = ({
                 const quizDone = !!solvedQuizzes[dish.id];
                 const storyRead = !!readStories[dish.id];
                 const isSelected = treatModalDishId === dish.id;
+                const homeStop = getDishRestaurant(dish.id);
+                const isAtActiveStop = homeStop.id === activeRestaurant.id;
 
                 return (
                   <div
@@ -375,7 +481,14 @@ export const InteractiveMenus: React.FC<InteractiveMenusProps> = ({
                         {dish.en}
                       </h3>
                       <div className="text-xs font-semibold text-[#4C6B8A]">{dish.th}</div>
-                      <div className="mt-1 text-xs font-bold text-[#3C8FB8]">
+                      <div
+                        className={`mt-1 text-[11px] font-bold ${
+                          isAtActiveStop ? 'text-[#2E8B60]' : 'text-[#4C6B8A]'
+                        }`}
+                      >
+                        {isAtActiveStop ? `★ ${homeStop.en}` : `@ ${homeStop.en}`}
+                      </div>
+                      <div className="mt-0.5 text-xs font-bold text-[#3C8FB8]">
                         {dish.priceLabel}
                         {count > 0 && ` · Made ${count}×`}
                         {storyRead && ' · Story ✓'}
@@ -409,6 +522,31 @@ export const InteractiveMenus: React.FC<InteractiveMenusProps> = ({
                 );
               })}
             </div>
+            {treatDishes.length === 0 && (
+              <div className="px-box bg-white p-5 text-center text-sm text-[#2B435E]">
+                <p className="font-bold">
+                  {activeRestaurant.en} serves all 5 of its signatures on the Pink Coastal Kitchen menu!
+                </p>
+                <div className="mt-3 flex flex-wrap justify-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => onChangeBoard('coastal')}
+                    className="px-btn bg-[#D84B7F] px-4 py-2 text-xs font-bold text-white"
+                  >
+                    Open Pink Kitchen Menu →
+                  </button>
+                  {onToggleFilterStop && filterByActiveStop && (
+                    <button
+                      type="button"
+                      onClick={onToggleFilterStop}
+                      className="px-btn bg-[#FFE59A] px-4 py-2 text-xs font-bold text-[#2B435E]"
+                    >
+                      {t.mapShowAll}
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

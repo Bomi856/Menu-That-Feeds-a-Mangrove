@@ -84,6 +84,25 @@ export interface WardrobeItem {
   desc: string;
 }
 
+export type RestaurantId = 'jaOh' | 'lungYa' | 'ruenTalay' | 'baanChayTalay';
+
+export interface BangKhunThianRestaurant {
+  id: RestaurantId;
+  order: number;
+  stageRequired: number;
+  shellsRequired: number;
+  en: string;
+  th: string;
+  zone: string;
+  landmark: string;
+  coords: { x: number; y: number };
+  tagline: string;
+  ecoStory: string;
+  signatureDishes: DishId[];
+  accentBg: string;
+  accentColor: string;
+}
+
 export const INGREDIENTS: Ingredient[] = [
   { id: 'garlic', en: 'Garlic', th: 'กระเทียม' },
   { id: 'chili', en: 'Bird Chili', th: 'พริกขี้หนู' },
@@ -729,3 +748,112 @@ export const AVATAR_COLORS = {
 export const AVATAR_STYLES = ['Long Waves', 'Twin Buns', 'Fluffy Curls', 'Sweet Bob'];
 export const AVATAR_BOY_STYLES = ['Soft Swoop', 'Curtain Part', 'Fluffy Curls', 'Spiky Crop'];
 export const AVATAR_ACCESSORIES = ['None', 'Headphones', 'Bow / Bandana', 'Leaf Sprout', 'Chef Beret'];
+
+export const BANG_KHUN_THIAN_RESTAURANTS: BangKhunThianRestaurant[] = [
+  {
+    id: 'jaOh',
+    order: 1,
+    stageRequired: 0,
+    shellsRequired: 0,
+    en: 'Ja-Oh Seafood',
+    th: 'เจ๊โอ๋ ซีฟู้ด',
+    zone: 'Upper Khlong Canal Hub',
+    landmark: 'Canal Pier & Wok Kitchen',
+    coords: { x: 23, y: 22 },
+    tagline: 'Bustling canal-side seafood kitchen along Bang Khun Thian–Chai Thale Road.',
+    ecoStory:
+      'Fresh cockles, mussels, oysters, and crisp canal water mimosa start the trail here—every rinsed bivalve shell gets collected for coastal wave barriers.',
+    signatureDishes: [
+      'blanchedCockles',
+      'cockleSalad',
+      'steamedMussels',
+      'oysterOmelette',
+      'waterMimosa',
+    ],
+    accentBg: '#FFE3EE',
+    accentColor: '#D84B7F',
+  },
+  {
+    id: 'lungYa',
+    order: 2,
+    stageRequired: 1,
+    shellsRequired: 4,
+    en: 'Krua Lung Ya',
+    th: 'ครัวลุงญา',
+    zone: 'Winding Mangrove Bend',
+    landmark: 'Waterfront Crab Pavilion',
+    coords: { x: 64, y: 36 },
+    tagline: 'Cozy family stilt pavilion tucked beside shady mangrove bends and crab channels.',
+    ecoStory:
+      'Famous for velvety crab roe dips and steamed mud crabs—learn how burrowing crabs aerate heavy coastal mud so young mangrove sprouts can breathe.',
+    signatureDishes: [
+      'papayaOyster',
+      'oysterSalad',
+      'crabRoeDip',
+      'steamedMudCrab',
+      'riverPrawns',
+    ],
+    accentBg: '#E6F8EC',
+    accentColor: '#2E8B60',
+  },
+  {
+    id: 'ruenTalay',
+    order: 3,
+    stageRequired: 2,
+    shellsRequired: 9,
+    en: 'Ruen Talay Bang Khun Thian',
+    th: 'เรือนทะเล บางขุนเทียน',
+    zone: 'Aquaculture Pond Boardwalk',
+    landmark: 'Timber Pond Overlook',
+    coords: { x: 34, y: 62 },
+    tagline: 'Open-air wooden platforms stretching over peaceful shrimp ponds and brackish reeds.',
+    ecoStory:
+      'Showcases wild sea blite greens and nipa palm gelato—highlighting salt-tolerant plants that stabilize pond dikes where freshwater meets the tide.',
+    signatureDishes: [
+      'pickledCrabSomTum',
+      'shrimpBlite',
+      'sourCurryBlite',
+      'sourCurryChaOm',
+      'nipaGelato',
+    ],
+    accentBg: '#FFF4D9',
+    accentColor: '#C57B18',
+  },
+  {
+    id: 'baanChayTalay',
+    order: 4,
+    stageRequired: 3,
+    shellsRequired: 15,
+    en: 'Baan Chay Talay',
+    th: 'บ้านชายทะเล',
+    zone: 'Bay of Bangkok & Sea Bridge',
+    landmark: 'Seafront Terrace & Mudflat Pier',
+    coords: { x: 75, y: 80 },
+    tagline: 'Breezy Gulf seafront terrace where mangrove canals open onto the Bay of Bangkok.',
+    ecoStory:
+      'Overlooking mudflats and the wooden sea bridge, honeybees pollinate mangrove blossoms while shell reefs and living roots guard the shoreline.',
+    signatureDishes: [
+      'honeyFizz',
+      'crepeCake',
+      'berryFloat',
+      'matchaBottle',
+      'palmTart',
+    ],
+    accentBg: '#DFF3FF',
+    accentColor: '#3C8FB8',
+  },
+];
+
+export const RESTAURANT_IDS: RestaurantId[] = BANG_KHUN_THIAN_RESTAURANTS.map((r) => r.id);
+
+export function getRestaurantById(id: RestaurantId | string | undefined): BangKhunThianRestaurant {
+  return BANG_KHUN_THIAN_RESTAURANTS.find((r) => r.id === id) || BANG_KHUN_THIAN_RESTAURANTS[0];
+}
+
+export function getDishRestaurant(dishId: DishId): BangKhunThianRestaurant {
+  return (
+    BANG_KHUN_THIAN_RESTAURANTS.find((r) => r.signatureDishes.includes(dishId)) ||
+    BANG_KHUN_THIAN_RESTAURANTS[0]
+  );
+}
+

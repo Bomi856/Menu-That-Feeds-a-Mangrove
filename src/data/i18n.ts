@@ -41,6 +41,7 @@ export const PRONOUN_OPTIONS: {
 export interface UIStrings {
   appTitle: string;
   navMenus: string;
+  navMap: string;
   navGuide: string;
   navWardrobe: string;
   navHowTo: string;
@@ -114,6 +115,21 @@ export interface UIStrings {
   resetModalDesc: string;
   resetKeepChefOption: string;
   resetConfirmBtn: string;
+  mapTitle: string;
+  mapSubtitle: string;
+  mapActiveBadge: string;
+  mapUnlockedBadge: string;
+  mapLockedBadge: string;
+  mapTravelHere: string;
+  mapCurrentStop: string;
+  mapSignatureDishes: string;
+  mapCookHere: string;
+  mapStopLabel: string;
+  mapAllUnlocked: string;
+  mapActiveKitchenLabel: string;
+  mapFilterStop: string;
+  mapShowAll: string;
+  mapViewMapBtn: string;
 }
 
 export function getChefGreeting(lang: AppLang, name: string): string {
@@ -138,6 +154,7 @@ export const UI_TEXT: Record<AppLang, UIStrings> = {
   en: {
     appTitle: 'Menu That Feeds a Mangrove',
     navMenus: 'Cafe Menus',
+    navMap: 'Coastal Map',
     navGuide: 'Field Guide',
     navWardrobe: 'Wardrobe',
     navHowTo: 'How to Play',
@@ -239,10 +256,27 @@ export const UI_TEXT: Record<AppLang, UIStrings> = {
       'This will reset your shells, mangrove growth, sapling name, cooked dishes, eco-quizzes, wardrobe unlocks, and daily streak back to the beginning.',
     resetKeepChefOption: 'Also reset chef name, avatar & re-open setup',
     resetConfirmBtn: 'Yes, Reset Progress',
+    mapTitle: 'Bang Khun Thian Coastal Trail',
+    mapSubtitle:
+      'Every mangrove Tomodachi growth level unlocks a real Bang Khun Thian seafood stop from the upper canal out to the Bay of Bangkok!',
+    mapActiveBadge: 'Current Stop',
+    mapUnlockedBadge: 'Unlocked',
+    mapLockedBadge: 'Locked',
+    mapTravelHere: 'Advance to This Restaurant',
+    mapCurrentStop: 'Dining & Cooking Here ★',
+    mapSignatureDishes: 'Signature Dishes at This Stop',
+    mapCookHere: 'Cook Signature Dishes →',
+    mapStopLabel: 'Stop',
+    mapAllUnlocked: 'All 4 Bang Khun Thian restaurants unlocked!',
+    mapActiveKitchenLabel: 'Active Stop',
+    mapFilterStop: 'Filter Here (5)',
+    mapShowAll: 'All Dishes',
+    mapViewMapBtn: 'Coastal Map →',
   },
   th: {
     appTitle: 'เมนูที่เลี้ยงป่าชายเลน',
     navMenus: 'เมนูคาเฟ่',
+    navMap: 'แผนที่ร้าน',
     navGuide: 'คู่มือป่าชายเลน',
     navWardrobe: 'ตู้เสื้อผ้า',
     navHowTo: 'วิธีเล่น',
@@ -344,10 +378,27 @@ export const UI_TEXT: Record<AppLang, UIStrings> = {
       'การรีเซ็ตจะล้างเปลือกหอย การเติบโตของต้นกล้า ชื่อต้นกล้า เมนูที่ปรุงแล้ว ควิซ ไอเท็มตู้เสื้อผ้า และสถิติรายวันกลับเป็นเริ่มต้น',
     resetKeepChefOption: 'รีเซ็ตชื่อ อวาตาร์เชฟ และเปิดหน้าสร้างตัวละครใหม่ด้วย',
     resetConfirmBtn: 'ยืนยันรีเซ็ต',
+    mapTitle: 'แผนที่เส้นทางร้านอาหารบางขุนเทียน',
+    mapSubtitle:
+      'ทุกครั้งที่ต้นกล้าโกงกางเติบโตขึ้น 1 ระดับ จะปลดล็อกร้านอาหารทะเลจริงในย่านบางขุนเทียนไล่จากลำคลองสู่ชายทะเล!',
+    mapActiveBadge: 'ร้านปัจจุบัน',
+    mapUnlockedBadge: 'ปลดล็อกแล้ว',
+    mapLockedBadge: 'ยังไม่ปลดล็อก',
+    mapTravelHere: 'ย้ายมาปรุงที่ร้านนี้',
+    mapCurrentStop: 'กำลังเปิดครัวที่ร้านนี้ ★',
+    mapSignatureDishes: 'เมนูซิกเนเจอร์ประจำร้าน',
+    mapCookHere: 'ไปทำเมนูร้านนี้เลย →',
+    mapStopLabel: 'จุดที่',
+    mapAllUnlocked: 'ปลดล็อกครบทั้ง 4 ร้านดังบางขุนเทียนแล้ว!',
+    mapActiveKitchenLabel: 'ร้านที่กำลังอยู่',
+    mapFilterStop: 'เฉพาะร้านนี้ (5)',
+    mapShowAll: 'ทุกเมนู',
+    mapViewMapBtn: 'ดูแผนที่ →',
   },
   my: {
     appTitle: 'ဒီရေတောကို ကျွေးမွေးတဲ့ မီနူး',
     navMenus: 'ကဖေးမီနူးများ',
+    navMap: 'ကမ်းရိုးတန်းမြေပုံ',
     navGuide: 'သဘာဝလမ်းညွှန်',
     navWardrobe: 'အဝတ်အစား',
     navHowTo: 'ကစားနည်း',
@@ -449,5 +500,21 @@ export const UI_TEXT: Record<AppLang, UIStrings> = {
       'ခရုခွံများ၊ ပျိုးပင်ကြီးထွားမှု၊ ပျိုးပင်အမည်၊ ချက်ပြီးသားဟင်းများ၊ ဉာဏ်စမ်းမေးခွန်း၊ အဝတ်အစားများနှင့် နေ့စဉ်မှတ်တမ်းများကို အစမှ ပြန်စပါမည်။',
     resetKeepChefOption: 'စားဖိုမှူးအမည်၊ ရုပ်ပုံနှင့် စတင်ပြင်ဆင်မှုကိုပါ ပြန်စမည်',
     resetConfirmBtn: 'ဟုတ်ကဲ့၊ ပြန်စမည်',
+    mapTitle: 'ဘန်ခွန်ထီယန် ကမ်းရိုးတန်း စားသောက်ဆိုင်မြေပုံ',
+    mapSubtitle:
+      'Tomodachi အပင်လေး အဆင့်တက်တိုင်း ဘန်ခွန်ထီယန်တူးမြောင်းမှ ပင်လယ်ဝအထိ စားသောက်ဆိုင်အသစ်များ ပွင့်လာပါမည်!',
+    mapActiveBadge: 'လက်ရှိဆိုင်',
+    mapUnlockedBadge: 'ဖွင့်ပြီး',
+    mapLockedBadge: 'ပိတ်ထားသည်',
+    mapTravelHere: 'ဤဆိုင်သို့ ပြောင်းမည်',
+    mapCurrentStop: 'ဤဆိုင်တွင် ချက်ပြုတ်နေသည် ★',
+    mapSignatureDishes: 'ဤဆိုင်၏ အထူးဟင်းလျာများ',
+    mapCookHere: 'ဤဆိုင်ဟင်းလျာများ ချက်မည် →',
+    mapStopLabel: 'မှတ်တိုင်',
+    mapAllUnlocked: 'ဘန်ခွန်ထီယန် စားသောက်ဆိုင် ၄ ဆိုင်လုံး ဖွင့်ပြီးပါပြီ!',
+    mapActiveKitchenLabel: 'လက်ရှိဆိုင်',
+    mapFilterStop: 'ဤဆိုင် (5)',
+    mapShowAll: 'အားလုံးပြမည်',
+    mapViewMapBtn: 'မြေပုံကြည့်ရန် →',
   },
 };

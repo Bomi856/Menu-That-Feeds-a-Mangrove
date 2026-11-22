@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { User, onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
+import { CoastalMapSection } from './components/CoastalMapSection';
 import { CookingModal } from './components/CookingModal';
 import { FieldGuideSection, WardrobeSection } from './components/FieldGuideAndWardrobe';
 import { InteractiveMenus } from './components/InteractiveMenus';
@@ -20,12 +21,16 @@ import {
   AVATAR_BOY_STYLES,
   AVATAR_COLORS,
   AVATAR_STYLES,
+  BANG_KHUN_THIAN_RESTAURANTS,
   DISHES,
   Dish,
   MenuBoardType,
+  RESTAURANT_IDS,
+  RestaurantId,
   SAPLING_STAGES,
   SAPLING_TIPS,
   WardrobeItem,
+  getRestaurantById,
 } from './data/gameData';
 import {
   AppLang,
@@ -44,7 +49,7 @@ import {
 } from './firebase';
 import { MusicTrackId, cuteAudio } from './utils/audio';
 
-type ActiveSection = 'menus' | 'guide' | 'wardrobe';
+type ActiveSection = 'menus' | 'map' | 'guide' | 'wardrobe';
 type PastelTheme = 'blue' | 'green' | 'pink';
 
 const THEME_META: Record<PastelTheme, { label: string; swatch: string }> = {
@@ -74,6 +79,7 @@ interface SaveState {
   dailyQuizzes: number;
   dailyFed: number;
   saplingName: string;
+  activeRestaurantId: RestaurantId;
   explorer: {
     name: string;
     pronouns: PronounId;
@@ -122,6 +128,7 @@ function createInitialState(): SaveState {
     dailyQuizzes: 0,
     dailyFed: 0,
     saplingName: 'Sprouty',
+    activeRestaurantId: 'jaOh',
     explorer: {
       name: 'Coastal Chef',
       pronouns: 'none',
@@ -137,6 +144,13 @@ function createInitialState(): SaveState {
 
 function normalizeState(raw: Partial<SaveState>): SaveState {
   const base = createInitialState();
+  const shellsFed = typeof raw.shellsFed === 'number' && Number.isFinite(raw.shellsFed) ? raw.shellsFed : 0;
+  const candidateStop = RESTAURANT_IDS.includes(raw.activeRestaurantId as RestaurantId)
+    ? getRestaurantById(raw.activeRestaurantId)
+    : BANG_KHUN_THIAN_RESTAURANTS[0];
+  const validStop =
+    shellsFed >= candidateStop.shellsRequired ? candidateStop.id : BANG_KHUN_THIAN_RESTAURANTS[0].id;
+
   const merged: SaveState = {
     ...base,
     ...raw,
@@ -148,6 +162,7 @@ function normalizeState(raw: Partial<SaveState>): SaveState {
       typeof raw.saplingName === 'string' && raw.saplingName.trim()
         ? raw.saplingName.trim().slice(0, 24)
         : 'Sprouty',
+    activeRestaurantId: validStop,
     explorer: {
       ...base.explorer,
       ...(raw.explorer || {}),
@@ -202,6 +217,7 @@ export default function App() {
   const [state, setState] = useState<SaveState>(loadLocalState);
   const [activeSection, setActiveSection] = useState<ActiveSection>('menus');
   const [activeBoard, setActiveBoard] = useState<MenuBoardType>('coastal');
+  const [filterByActiveStop, setFilterByActiveStop] = useState(false);
   const [cookingDish, setCookingDish] = useState<Dish | null>(null);
   const [musicOn, setMusicOn] = useState(false);
   const [musicTrack, setMusicTrack] = useState<MusicTrackId>('magnetic');
@@ -632,6 +648,10 @@ export default function App() {
     const beforeStage = getStageIndex(state.shellsFed);
     const nextFed = state.shellsFed + 1;
     const afterStage = getStageIndex(nextFed);
+    const unlockedStop =
+      afterStage > beforeStage
+        ? BANG_KHUN_THIAN_RESTAURANTS.find((r) => r.stageRequired === afterStage)
+        : undefined;
 
     setState((prev) => {
       const resetDay = prev.dailyDate !== getTodayKey();
@@ -639,6 +659,7 @@ export default function App() {
         ...prev,
         shellsPending: prev.shellsPending - 1,
         shellsFed: prev.shellsFed + 1,
+        activeRestaurantId: unlockedStop ? unlockedStop.id : prev.activeRestaurantId,
         dailyDate: getTodayKey(),
         dailyCooked: resetDay ? 0 : prev.dailyCooked,
         dailyQuizzes: resetDay ? 0 : prev.dailyQuizzes,
@@ -649,16 +670,39 @@ export default function App() {
     setSaplingPop(true);
     window.setTimeout(() => setSaplingPop(false), 450);
 
-    const tip = SAPLING_TIPS[Math.floor(Math.random() * SAPLING_TIPS.length)];
-    setSaplingTip(tip);
-
-    if (afterStage > beforeStage) {
+    if (unlockedStop) {
       cuteAudio.playSparkle();
       touchActivity('celebrating', 4500);
+      setSaplingTip(
+        `Hooray! We unlocked ${unlockedStop.en} (${unlockedStop.th}) on the Coastal Map!`
+      );
+      triggerCheer(
+        `Level up: ${SAPLING_STAGES[afterStage].en}! Unlocked ${unlockedStop.en}!`,
+        42
+      );
+      showToast(`Map Stop #${unlockedStop.order} Unlocked: ${unlockedStop.en}!`);
+    } else if (afterStage > beforeStage) {
+      cuteAudio.playSparkle();
+      touchActivity('celebrating', 4500);
+      setSaplingTip(SAPLING_TIPS[Math.floor(Math.random() * SAPLING_TIPS.length)]);
       triggerCheer(`Level up: ${SAPLING_STAGES[afterStage].en}!`, 40);
     } else {
+      const tip = SAPLING_TIPS[Math.floor(Math.random() * SAPLING_TIPS.length)];
+      setSaplingTip(tip);
       touchActivity('celebrating', 2600);
     }
+  };
+
+  const handleTravelToRestaurant = (id: RestaurantId) => {
+    const target = getRestaurantById(id);
+    if (state.shellsFed < target.shellsRequired) {
+      showToast(`Feed ${target.shellsRequired} shells to unlock ${target.en}!`);
+      return;
+    }
+    setState((prev) => ({ ...prev, activeRestaurantId: target.id }));
+    touchActivity('happy', 2800);
+    setSaplingTip(`Welcome to Stop #${target.order}: ${target.en} (${target.th})!`);
+    showToast(`Arrived at ${target.en}!`);
   };
 
   const handleClaimDaily = () => {
@@ -746,6 +790,7 @@ export default function App() {
 
     setCookingDish(null);
     setSaplingTip(null);
+    setFilterByActiveStop(false);
     setActiveSection('menus');
     touchActivity('idle');
     setShowResetModal(false);
@@ -824,6 +869,20 @@ export default function App() {
               }`}
             >
               {t.navMenus}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                cuteAudio.playPop(620);
+                setActiveSection('map');
+              }}
+              className={`whitespace-nowrap shrink-0 pb-0.5 transition-colors ${
+                activeSection === 'map'
+                  ? 'text-[var(--accent-primary)] border-b-2 border-[var(--accent-primary)]'
+                  : 'hover:text-[var(--ink-main)]'
+              }`}
+            >
+              {t.navMap}
             </button>
             <button
               type="button"
@@ -919,7 +978,7 @@ export default function App() {
       </header>
 
       {/* Mobile Nav Strip */}
-      <div className="lg:hidden border-b-2 border-[var(--outline)]/25 bg-[var(--surface-card)] px-4 py-2 flex items-center justify-around gap-2 text-xs font-bold">
+      <div className="lg:hidden border-b-2 border-[var(--outline)]/25 bg-[var(--surface-card)] px-3 py-2 flex items-center justify-around gap-1.5 text-xs font-bold overflow-x-auto">
         <button
           type="button"
           onClick={() => setActiveSection('menus')}
@@ -928,6 +987,15 @@ export default function App() {
           }`}
         >
           {t.navMenus}
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveSection('map')}
+          className={`px-2 py-1 whitespace-nowrap ${
+            activeSection === 'map' ? 'text-[var(--accent-primary)] underline' : 'text-[var(--ink-soft)]'
+          }`}
+        >
+          {t.navMap}
         </button>
         <button
           type="button"
@@ -1076,6 +1144,10 @@ export default function App() {
                 dishes={DISHES}
                 activeBoard={activeBoard}
                 onChangeBoard={setActiveBoard}
+                activeRestaurantId={state.activeRestaurantId}
+                filterByActiveStop={filterByActiveStop}
+                onToggleFilterStop={() => setFilterByActiveStop((v) => !v)}
+                onOpenMap={() => setActiveSection('map')}
                 cookedCounts={state.cookedCounts}
                 readStories={state.readStories}
                 solvedQuizzes={state.solvedQuizzes}
@@ -1086,6 +1158,29 @@ export default function App() {
               />
             )}
 
+            {activeSection === 'map' && (
+              <CoastalMapSection
+                lang={state.lang}
+                shellsFed={state.shellsFed}
+                shellsPending={state.shellsPending}
+                activeRestaurantId={state.activeRestaurantId}
+                cookedCounts={state.cookedCounts}
+                solvedQuizzes={state.solvedQuizzes}
+                explorer={state.explorer}
+                onTravelToRestaurant={handleTravelToRestaurant}
+                onCookDish={(dish) => setCookingDish(dish)}
+                onOpenStopInMenus={(restaurantId, board) => {
+                  const target = getRestaurantById(restaurantId);
+                  if (state.shellsFed >= target.shellsRequired) {
+                    setState((prev) => ({ ...prev, activeRestaurantId: target.id }));
+                  }
+                  setActiveBoard(board);
+                  setFilterByActiveStop(true);
+                  setActiveSection('menus');
+                }}
+              />
+            )}
+
             {activeSection === 'guide' && (
               <FieldGuideSection
                 cookedCounts={state.cookedCounts}
@@ -1093,6 +1188,7 @@ export default function App() {
                 solvedQuizzes={state.solvedQuizzes}
                 onSelectDish={(dish) => {
                   setActiveBoard(dish.board);
+                  setFilterByActiveStop(false);
                   setActiveSection('menus');
                   setCookingDish(dish);
                 }}

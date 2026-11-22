@@ -65,9 +65,9 @@ export const OFFICIAL_SPRITE_FILES: Record<OfficialSpriteId, string> = {
   nipaGelato: 'pixel_nipa_gelato_1795345914357.jpg',
   crepeCake: 'pixel_crepe_cake_1795345914530.jpg',
   cloudMilk: 'pixel_cloud_milk_1795345914853.jpg',
-  tomodachiStage0: 'tomodachi_stage0_green_seed_1795349453099.jpg',
+  tomodachiStage0: 'tomodachi_stage0_v3_1795350081416.jpg',
   tomodachiStage1: 'tomodachi_stage1_sprout_1795346317657.jpg',
-  tomodachiStage2: 'tomodachi_stage2_green_sapling_1795349453966.jpg',
+  tomodachiStage2: 'tomodachi_stage2_v3_1795350080612.jpg',
   wardrobeHat: 'wardrobe_straw_hat_1795346318050.jpg',
   wardrobeCan: 'wardrobe_watering_can_1795346318115.jpg',
   wardrobeChime: 'wardrobe_shell_chime_1795346318675.jpg',
@@ -721,7 +721,7 @@ function adjustHex(hex: string, delta: number): string {
   return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
 }
 
-// === 16-BIT RETRO PIXEL-ART LIVING MANGROVE TOMODACHI ===
+// === UNIFIED 16-BIT SHADED KAWAII PIXEL MANGROVE TOMODACHI ===
 export const SaplingIllustration: React.FC<{
   stage: number;
   equipped: WardrobeItem['id'][];
@@ -739,63 +739,84 @@ export const SaplingIllustration: React.FC<{
       ? 'tomodachi-sad'
       : 'tomodachi-idle';
 
-  const stageSprite: OfficialSpriteId =
-    safeStage === 0
-      ? 'tomodachiStage0'
-      : safeStage === 1
-      ? 'tomodachiStage1'
-      : safeStage === 2
-      ? 'tomodachiStage2'
-      : 'mangrove';
+  const faceY = safeStage === 0 ? 31 : safeStage === 1 ? 26 : safeStage === 2 ? 20 : 18;
+  const hatY = safeStage === 0 ? 18 : safeStage === 1 ? 14 : safeStage === 2 ? 7 : 3;
+  const crownY = safeStage === 0 ? 22 : safeStage === 1 ? 18 : safeStage === 2 ? 10 : 6;
 
-  const stageSpriteSize =
-    safeStage === 0
-      ? Math.round(size * 0.46)
-      : safeStage === 1
-      ? Math.round(size * 0.56)
-      : safeStage === 2
-      ? Math.round(size * 0.62)
-      : Math.round(size * 0.66);
+  const renderPixelFace = (cx: number, cy: number) => {
+    const lx = cx - 5;
+    const rx = cx + 3;
+    return (
+      <g>
+        {/* Warm coral-rose pixel cheek blush */}
+        <rect x={lx - 2} y={cy + 3} width="2" height="1" fill="#FF9EB6" />
+        <rect x={rx + 2} y={cy + 3} width="2" height="1" fill="#FF9EB6" />
 
-  const stageBottomClass =
-    safeStage === 0
-      ? 'bottom-[19%]'
-      : safeStage === 1
-      ? 'bottom-[18%]'
-      : safeStage === 2
-      ? 'bottom-[16%]'
-      : 'bottom-[15%]';
+        {mood === 'celebrating' || mood === 'happy' ? (
+          <>
+            {/* Joyful ^ ^ pixel eyes */}
+            <rect x={lx - 1} y={cy + 1} width="1" height="1" fill="#3A2128" />
+            <rect x={lx} y={cy} width="2" height="1" fill="#3A2128" />
+            <rect x={lx + 2} y={cy + 1} width="1" height="1" fill="#3A2128" />
 
-  // Position animated 16-bit pixel face cleanly on the green seed belly (stage 0) or green canopy (stages 1–3)
-  const faceBottomClass =
-    safeStage === 0
-      ? 'bottom-[29%]'
-      : safeStage === 1
-      ? 'bottom-[48%]'
-      : safeStage === 2
-      ? 'bottom-[44%]'
-      : 'bottom-[50%]';
+            <rect x={rx - 1} y={cy + 1} width="1" height="1" fill="#3A2128" />
+            <rect x={rx} y={cy} width="2" height="1" fill="#3A2128" />
+            <rect x={rx + 2} y={cy + 1} width="1" height="1" fill="#3A2128" />
 
-  const hatBottomClass =
-    safeStage === 0
-      ? 'bottom-[49%]'
-      : safeStage === 1
-      ? 'bottom-[60%]'
-      : safeStage === 2
-      ? 'bottom-[66%]'
-      : 'bottom-[68%]';
+            {/* Happy rosy smile */}
+            <rect x={cx - 1} y={cy + 3} width="2" height="1" fill="#FF799E" />
+            <rect x={cx - 2} y={cy + 2} width="1" height="1" fill="#3A2128" />
+            <rect x={cx + 1} y={cy + 2} width="1" height="1" fill="#3A2128" />
+          </>
+        ) : mood === 'sad' ? (
+          <>
+            {/* Droopy worried pixel brows */}
+            <rect x={lx - 1} y={cy - 1} width="2" height="1" fill="#3A2128" />
+            <rect x={rx + 1} y={cy - 1} width="2" height="1" fill="#3A2128" />
+            {/* Glossy watery eyes */}
+            <rect x={lx} y={cy} width="2" height="2" fill="#3A2128" />
+            <rect x={lx} y={cy} width="1" height="1" fill="#FFFFFF" />
+            <rect x={lx + 1} y={cy + 1} width="1" height="1" fill="#8CE2FF" />
+            <rect x={rx} y={cy} width="2" height="2" fill="#3A2128" />
+            <rect x={rx} y={cy} width="1" height="1" fill="#FFFFFF" />
+            <rect x={rx + 1} y={cy + 1} width="1" height="1" fill="#8CE2FF" />
+            {/* Cute blue pixel teardrop */}
+            <rect x={lx - 1} y={cy + 2} width="1" height="2" fill="#77D4FA" />
+            <rect x={lx - 1} y={cy + 4} width="1" height="1" fill="#499CD1" />
+            {/* Tiny sad pout */}
+            <rect x={cx - 1} y={cy + 3} width="2" height="1" fill="#3A2128" />
+            <rect x={cx - 2} y={cy + 4} width="1" height="1" fill="#3A2128" />
+            <rect x={cx + 1} y={cy + 4} width="1" height="1" fill="#3A2128" />
+          </>
+        ) : isBlinking ? (
+          <>
+            {/* Soft closed pixel eyelashes */}
+            <rect x={lx - 1} y={cy + 1} width="3" height="1" fill="#3A2128" />
+            <rect x={rx} y={cy + 1} width="3" height="1" fill="#3A2128" />
+            <rect x={cx - 1} y={cy + 3} width="2" height="1" fill="#E37C9D" />
+          </>
+        ) : (
+          <>
+            {/* Glossy kawaii 16-bit pixel eyes */}
+            <rect x={lx - 1} y={cy} width="3" height="1" fill="#3A2128" />
+            <rect x={lx} y={cy + 1} width="1" height="1" fill="#FFFFFF" />
+            <rect x={lx + 1} y={cy + 1} width="1" height="1" fill="#B54D78" />
+            <rect x={lx} y={cy + 2} width="2" height="1" fill="#FF9FC2" />
 
-  const crownBottomClass =
-    safeStage === 0
-      ? 'bottom-[47%]'
-      : safeStage === 1
-      ? 'bottom-[57%]'
-      : safeStage === 2
-      ? 'bottom-[63%]'
-      : 'bottom-[65%]';
+            <rect x={rx} y={cy} width="3" height="1" fill="#3A2128" />
+            <rect x={rx} y={cy + 1} width="1" height="1" fill="#FFFFFF" />
+            <rect x={rx + 1} y={cy + 1} width="1" height="1" fill="#B54D78" />
+            <rect x={rx} y={cy + 2} width="2" height="1" fill="#FF9FC2" />
 
-  const boxHeight = Math.round((size * 48) / 56);
-  const faceWidth = Math.max(12, Math.round(size * 0.18));
+            {/* Sweet tiny smile */}
+            <rect x={cx - 1} y={cy + 3} width="2" height="1" fill="#D96B8E" />
+          </>
+        )}
+      </g>
+    );
+  };
+
+  const boxHeight = Math.round((size * 52) / 64);
 
   return (
     <div
@@ -803,186 +824,328 @@ export const SaplingIllustration: React.FC<{
       style={{ width: size, height: boxHeight }}
       aria-hidden="true"
     >
-      {/* Clean Simplified Pixel Coastal Sky, Water & Mudflat Island (earlier minimal backdrop) */}
       <svg
-        viewBox="0 0 56 48"
+        viewBox="0 0 64 52"
         width={size}
         height={boxHeight}
         shapeRendering="crispEdges"
         className="pixel-art block"
       >
-        {/* Pastel Pixel Sky & Clouds */}
-        <rect x="1" y="1" width="54" height="31" fill={mood === 'sad' ? '#DCEBFA' : '#E9F8FF'} />
-        {/* Pixel Sun */}
-        <rect x="44" y="4" width="6" height="6" fill="#FFE896" />
-        <rect x="45" y="5" width="4" height="4" fill="#FFF7CC" />
-        {/* Fluffy Pixel Clouds */}
-        <rect x="5" y="6" width="8" height="2" fill="#FFFFFF" />
-        <rect x="7" y="5" width="4" height="1" fill="#FFFFFF" />
-        <rect x="33" y="9" width="7" height="2" fill="#FFFFFF" />
-        <rect x="35" y="8" width="3" height="1" fill="#FFFFFF" />
+        {/* Clean Simplified Coastal Sky & Clouds */}
+        <rect x="1" y="1" width="62" height="33" fill={mood === 'sad' ? '#DCEBFA' : '#E9F8FF'} />
+        {/* Warm Pixel Sun */}
+        <rect x="51" y="4" width="6" height="6" fill="#FFE68A" />
+        <rect x="52" y="5" width="4" height="4" fill="#FFF7CC" />
+        {/* 2 Clean Fluffy Pixel Clouds */}
+        <rect x="6" y="6" width="9" height="2" fill="#FFFFFF" />
+        <rect x="8" y="5" width="5" height="1" fill="#FFFFFF" />
+        <rect x="37" y="9" width="8" height="2" fill="#FFFFFF" />
+        <rect x="39" y="8" width="4" height="1" fill="#FFFFFF" />
 
-        {/* Shimmering Aqua Coastal Water */}
-        <rect x="1" y="31" width="54" height="16" fill={mood === 'sad' ? '#A8D8EE' : '#BCEBFB'} />
-        <rect x="4" y="33" width="6" height="1" fill="#FFFFFF" />
-        <rect x="42" y="35" width="7" height="1" fill="#FFFFFF" />
-        <rect x="9" y="39" width="4" height="1" fill="#E8FAFF" />
+        {/* Calm Aqua Coastal Water */}
+        <rect x="1" y="34" width="62" height="17" fill={mood === 'sad' ? '#A7D7EE' : '#BCEBFB'} />
+        <rect x="5" y="36" width="7" height="1" fill="#FFFFFF" />
+        <rect x="49" y="38" width="7" height="1" fill="#FFFFFF" />
+        <rect x="10" y="43" width="5" height="1" fill="#E8FAFF" />
 
-        {/* Warm Sandy Mudflat Island */}
-        <rect x="10" y="36" width="36" height="2" fill="#EED2B5" />
-        <rect x="8" y="38" width="40" height="5" fill="#E8C6A4" />
-        <rect x="11" y="43" width="34" height="2" fill="#D5AE89" />
-        <rect x="10" y="35" width="36" height="1" fill="#5B2A4A" opacity="0.2" />
+        {/* Warm 16-Bit Shaded Sandy Mudflat Island */}
+        <rect x="12" y="38" width="40" height="2" fill="#F2D7B7" />
+        <rect x="9" y="40" width="46" height="6" fill="#E7C198" />
+        <rect x="13" y="46" width="38" height="2" fill="#C99E74" />
+        <rect x="12" y="37" width="40" height="1" fill="#3A2128" opacity="0.18" />
 
-        {/* Protective Simple Shell Bio-Barrier */}
-        <rect x="14" y="40" width="4" height="2" fill="#FFD1E1" />
-        <rect x="15" y="39" width="2" height="1" fill="#FFF3F7" />
-        <rect x="20" y="41" width="4" height="2" fill="#FFF3D4" />
-        <rect x="21" y="40" width="2" height="1" fill="#FFFFFF" />
-        <rect x="26" y="41" width="4" height="2" fill="#FFD1E1" />
-        <rect x="27" y="40" width="2" height="1" fill="#FFF3F7" />
-        <rect x="32" y="41" width="4" height="2" fill="#FFF3D4" />
-        <rect x="33" y="40" width="2" height="1" fill="#FFFFFF" />
-        <rect x="38" y="40" width="4" height="2" fill="#FFD1E1" />
-        <rect x="39" y="39" width="2" height="1" fill="#FFF3F7" />
+        {/* Shaded Coral-Peach & Cream Seashell Bio-Barrier */}
+        <rect x="16" y="43" width="4" height="2" fill="#FFBFA8" />
+        <rect x="17" y="42" width="2" height="1" fill="#FFE5D8" />
+        <rect x="23" y="44" width="4" height="2" fill="#FFE4B8" />
+        <rect x="24" y="43" width="2" height="1" fill="#FFF7E2" />
+        <rect x="30" y="44" width="4" height="2" fill="#FFBFA8" />
+        <rect x="31" y="43" width="2" height="1" fill="#FFE5D8" />
+        <rect x="37" y="44" width="4" height="2" fill="#FFE4B8" />
+        <rect x="38" y="43" width="2" height="1" fill="#FFF7E2" />
+        <rect x="44" y="43" width="4" height="2" fill="#FFBFA8" />
+        <rect x="45" y="42" width="2" height="1" fill="#FFE5D8" />
 
         {/* Crisp Pixel Frame Outline */}
-        <rect x="0" y="0" width="56" height="1" fill="#5B2A4A" />
-        <rect x="0" y="47" width="56" height="1" fill="#5B2A4A" />
-        <rect x="0" y="0" width="1" height="48" fill="#5B2A4A" />
-        <rect x="55" y="0" width="1" height="48" fill="#5B2A4A" />
-      </svg>
+        <rect x="0" y="0" width="64" height="1" fill="#4A253A" />
+        <rect x="0" y="51" width="64" height="1" fill="#4A253A" />
+        <rect x="0" y="0" width="1" height="52" fill="#4A253A" />
+        <rect x="63" y="0" width="1" height="52" fill="#4A253A" />
 
-      {/* Chime Accessory hanging from upper-left sky corner */}
-      {has('chime') && (
-        <div className="pointer-events-none absolute top-[5%] left-[5%] z-20 animate-float-slow">
-          <OfficialPixelSprite name="wardrobeChime" size={Math.max(12, Math.round(size * 0.19))} />
-        </div>
-      )}
+        {/* Animated 16-Bit Kawaii Green Tomodachi */}
+        <g className={animClass} style={{ transformOrigin: '32px 39px' }}>
+          {/* Ground contact shadow on mudflat */}
+          <rect x="25" y="39" width="14" height="1" fill="#3A2128" opacity="0.22" />
 
-      {/* Watering Can resting beside mudflat */}
-      {has('can') && (
-        <div className="pointer-events-none absolute bottom-[16%] left-[8%] z-20">
-          <OfficialPixelSprite name="wardrobeCan" size={Math.max(12, Math.round(size * 0.19))} />
-        </div>
-      )}
+          {safeStage === 0 && (
+            <g>
+              {/* Stage 0: Cute Plump 16-Bit Green Seed Buddy w/ Twin Baby Leaves */}
+              {/* Top baby sprout stem & twin leaves */}
+              <rect x="31" y="23" width="2" height="3" fill="#418535" />
+              <rect x="26" y="21" width="4" height="1" fill="#3A2128" />
+              <rect x="25" y="22" width="5" height="2" fill="#92D65B" />
+              <rect x="26" y="22" width="2" height="1" fill="#C8F391" />
+              <rect x="26" y="24" width="4" height="1" fill="#3A2128" />
 
-      {/* Living Animated 16-Bit Tomodachi Sprite + Crisp Pixel Face */}
-      <div
-        className={`pointer-events-none absolute inset-x-0 ${stageBottomClass} z-10 flex justify-center ${animClass}`}
-      >
-        <OfficialPixelSprite name={stageSprite} size={stageSpriteSize} />
-      </div>
+              <rect x="34" y="21" width="4" height="1" fill="#3A2128" />
+              <rect x="34" y="22" width="5" height="2" fill="#63B047" />
+              <rect x="35" y="22" width="2" height="1" fill="#92D65B" />
+              <rect x="34" y="24" width="4" height="1" fill="#3A2128" />
 
-      {/* Expressive Animated 16-Bit Pixel Face Overlay (synced with Tomodachi animation) */}
-      <div
-        className={`pointer-events-none absolute inset-x-0 ${faceBottomClass} z-20 flex justify-center ${animClass}`}
-      >
-        <svg
-          viewBox="0 0 18 9"
-          width={faceWidth}
-          height={Math.round(faceWidth * 0.5)}
-          shapeRendering="crispEdges"
-          className="pixel-art drop-shadow-[0_1px_0_rgba(255,255,255,0.28)]"
-        >
-          {/* Warm coral-peach pixel cheek blush */}
-          <rect x="2" y="5" width="2" height="1" fill="#FF9E80" />
-          <rect x="14" y="5" width="2" height="1" fill="#FF9E80" />
+              {/* Plump rounded green seed body with 4-tone 16-bit shading */}
+              <rect x="27" y="25" width="10" height="1" fill="#3A2128" />
+              <rect x="25" y="26" width="2" height="1" fill="#3A2128" />
+              <rect x="37" y="26" width="2" height="1" fill="#3A2128" />
+              <rect x="24" y="27" width="1" height="2" fill="#3A2128" />
+              <rect x="39" y="27" width="1" height="2" fill="#3A2128" />
+              <rect x="23" y="29" width="1" height="8" fill="#3A2128" />
+              <rect x="40" y="29" width="1" height="8" fill="#3A2128" />
+              <rect x="24" y="37" width="1" height="2" fill="#3A2128" />
+              <rect x="39" y="37" width="1" height="2" fill="#3A2128" />
+              <rect x="25" y="39" width="14" height="1" fill="#3A2128" />
 
-          {mood === 'celebrating' || mood === 'happy' ? (
-            <>
-              {/* Joyful ^ ^ pixel eyes */}
-              <rect x="4" y="3" width="1" height="1" fill="#23140E" />
-              <rect x="5" y="2" width="1" height="1" fill="#23140E" />
-              <rect x="6" y="3" width="1" height="1" fill="#23140E" />
+              {/* Inner lush green fills */}
+              <rect x="27" y="26" width="10" height="1" fill="#92D65B" />
+              <rect x="25" y="27" width="14" height="2" fill="#92D65B" />
+              <rect x="24" y="29" width="16" height="8" fill="#92D65B" />
+              <rect x="25" y="37" width="14" height="2" fill="#63B047" />
 
-              <rect x="11" y="3" width="1" height="1" fill="#23140E" />
-              <rect x="12" y="2" width="1" height="1" fill="#23140E" />
-              <rect x="13" y="3" width="1" height="1" fill="#23140E" />
+              {/* 16-bit sunlit leaf highlights & dappled shading */}
+              <rect x="26" y="27" width="4" height="2" fill="#C8F391" />
+              <rect x="25" y="29" width="2" height="2" fill="#C8F391" />
+              <rect x="37" y="30" width="3" height="6" fill="#63B047" />
+              <rect x="26" y="38" width="12" height="1" fill="#418535" />
 
-              {/* Happy little smile */}
-              <rect x="7" y="5" width="1" height="1" fill="#23140E" />
-              <rect x="8" y="6" width="2" height="1" fill="#FF7B6B" />
-              <rect x="10" y="5" width="1" height="1" fill="#23140E" />
-            </>
-          ) : mood === 'sad' ? (
-            <>
-              {/* Worried brows */}
-              <rect x="4" y="1" width="2" height="1" fill="#23140E" />
-              <rect x="12" y="1" width="2" height="1" fill="#23140E" />
-              {/* Glossy watery eyes */}
-              <rect x="4" y="2" width="2" height="3" fill="#23140E" />
-              <rect x="4" y="2" width="1" height="1" fill="#FFFFFF" />
-              <rect x="5" y="4" width="1" height="1" fill="#7CE0FF" />
-              <rect x="12" y="2" width="2" height="3" fill="#23140E" />
-              <rect x="12" y="2" width="1" height="1" fill="#FFFFFF" />
-              <rect x="13" y="4" width="1" height="1" fill="#7CE0FF" />
-              {/* Pixel teardrop */}
-              <rect x="3" y="5" width="1" height="2" fill="#63D2FF" />
-              {/* Tiny sad pout */}
-              <rect x="8" y="6" width="2" height="1" fill="#23140E" />
-              <rect x="7" y="7" width="1" height="1" fill="#23140E" />
-              <rect x="10" y="7" width="1" height="1" fill="#23140E" />
-            </>
-          ) : isBlinking ? (
-            <>
-              {/* Crisp pixel blink */}
-              <rect x="4" y="4" width="3" height="1" fill="#23140E" />
-              <rect x="11" y="4" width="3" height="1" fill="#23140E" />
-              <rect x="8" y="6" width="2" height="1" fill="#23140E" />
-            </>
-          ) : (
-            <>
-              {/* Crisp 16-bit glossy dark eyes with white pixel highlight */}
-              <rect x="4" y="2" width="2" height="3" fill="#23140E" />
-              <rect x="4" y="2" width="1" height="1" fill="#FFFFFF" />
-              <rect x="12" y="2" width="2" height="3" fill="#23140E" />
-              <rect x="12" y="2" width="1" height="1" fill="#FFFFFF" />
-              {/* Cozy pixel smile */}
-              <rect x="8" y="5" width="2" height="1" fill="#23140E" />
-            </>
+              {renderPixelFace(32, faceY)}
+            </g>
           )}
-        </svg>
-      </div>
 
-      {/* Head Accessories (Hat & Blossom Crown) worn cleanly over the canopy */}
-      {has('crown') && (
-        <div
-          className={`pointer-events-none absolute inset-x-0 ${crownBottomClass} z-30 flex justify-center ${animClass}`}
-        >
-          <OfficialPixelSprite name="wardrobeCrown" size={Math.max(15, Math.round(size * 0.25))} />
-        </div>
-      )}
-      {has('hat') && (
-        <div
-          className={`pointer-events-none absolute inset-x-0 ${hatBottomClass} z-30 flex justify-center ${animClass}`}
-        >
-          <OfficialPixelSprite name="wardrobeHat" size={Math.max(16, Math.round(size * 0.27))} />
-        </div>
-      )}
+          {safeStage === 1 && (
+            <g>
+              {/* Stage 1: Cute 16-Bit Green Tide Sprout Buddy */}
+              {/* Warm shaded woody stem & tiny root tips */}
+              <rect x="30" y="33" width="1" height="6" fill="#3A2128" />
+              <rect x="33" y="33" width="1" height="6" fill="#3A2128" />
+              <rect x="31" y="33" width="1" height="6" fill="#A87148" />
+              <rect x="32" y="33" width="1" height="6" fill="#825031" />
+              <rect x="29" y="38" width="2" height="1" fill="#5B341E" />
+              <rect x="33" y="38" width="2" height="1" fill="#5B341E" />
 
-      {/* Happy / Celebrating 16-bit Pixel Sparkles */}
-      {(mood === 'celebrating' || mood === 'happy') && (
-        <svg
-          viewBox="0 0 56 48"
-          width={size}
-          height={boxHeight}
-          shapeRendering="crispEdges"
-          className="pixel-art pointer-events-none absolute inset-0 z-30"
-        >
-          <rect x="12" y="11" width="1" height="3" fill="#FFF39A" />
-          <rect x="11" y="12" width="3" height="1" fill="#FFF39A" />
-          <rect x="12" y="12" width="1" height="1" fill="#FFFFFF" />
-          <rect x="43" y="13" width="1" height="3" fill="#FFE066" />
-          <rect x="42" y="14" width="3" height="1" fill="#FFE066" />
-          <rect x="43" y="14" width="1" height="1" fill="#FFFFFF" />
-        </svg>
-      )}
+              {/* Top little leaf crown */}
+              <rect x="30" y="18" width="4" height="1" fill="#3A2128" />
+              <rect x="29" y="19" width="6" height="2" fill="#92D65B" />
+              <rect x="30" y="19" width="2" height="1" fill="#C8F391" />
+
+              {/* Perky dappled side leaves */}
+              <rect x="19" y="21" width="5" height="1" fill="#3A2128" />
+              <rect x="18" y="22" width="6" height="3" fill="#92D65B" />
+              <rect x="19" y="22" width="3" height="1" fill="#C8F391" />
+              <rect x="19" y="25" width="5" height="1" fill="#3A2128" />
+
+              <rect x="40" y="21" width="5" height="1" fill="#3A2128" />
+              <rect x="40" y="22" width="6" height="3" fill="#63B047" />
+              <rect x="41" y="22" width="3" height="1" fill="#92D65B" />
+              <rect x="40" y="25" width="5" height="1" fill="#3A2128" />
+
+              {/* Plump Green Sprout Head */}
+              <rect x="26" y="21" width="12" height="1" fill="#3A2128" />
+              <rect x="24" y="22" width="2" height="1" fill="#3A2128" />
+              <rect x="38" y="22" width="2" height="1" fill="#3A2128" />
+              <rect x="23" y="23" width="1" height="8" fill="#3A2128" />
+              <rect x="40" y="23" width="1" height="8" fill="#3A2128" />
+              <rect x="24" y="31" width="2" height="1" fill="#3A2128" />
+              <rect x="38" y="31" width="2" height="1" fill="#3A2128" />
+              <rect x="26" y="32" width="12" height="1" fill="#3A2128" />
+
+              <rect x="26" y="22" width="12" height="1" fill="#92D65B" />
+              <rect x="24" y="23" width="16" height="8" fill="#92D65B" />
+              <rect x="26" y="31" width="12" height="1" fill="#63B047" />
+
+              {/* 16-bit foliage highlight & rim shade */}
+              <rect x="25" y="23" width="5" height="2" fill="#C8F391" />
+              <rect x="37" y="24" width="3" height="6" fill="#63B047" />
+              <rect x="26" y="31" width="12" height="1" fill="#418535" />
+
+              {renderPixelFace(32, faceY)}
+            </g>
+          )}
+
+          {safeStage === 2 && (
+            <g>
+              {/* Stage 2: Cute 16-Bit Green Rooted Sapling w/ Arching Prop Roots */}
+              {/* Forked warm bark trunk & 4 arching mangrove prop roots */}
+              <rect x="30" y="26" width="1" height="7" fill="#3A2128" />
+              <rect x="33" y="26" width="1" height="7" fill="#3A2128" />
+              <rect x="31" y="26" width="1" height="13" fill="#A87148" />
+              <rect x="32" y="26" width="1" height="13" fill="#825031" />
+              {/* Left & right prop roots */}
+              <rect x="26" y="31" width="4" height="2" fill="#825031" />
+              <rect x="24" y="33" width="3" height="6" fill="#825031" />
+              <rect x="23" y="35" width="2" height="4" fill="#5B341E" />
+              <rect x="34" y="31" width="4" height="2" fill="#825031" />
+              <rect x="37" y="33" width="3" height="6" fill="#825031" />
+              <rect x="39" y="35" width="2" height="4" fill="#5B341E" />
+
+              {/* 3-Cluster Leafy Green Canopy Silhouette */}
+              <rect x="25" y="12" width="14" height="1" fill="#3A2128" />
+              <rect x="21" y="13" width="4" height="1" fill="#3A2128" />
+              <rect x="39" y="13" width="4" height="1" fill="#3A2128" />
+              <rect x="19" y="14" width="2" height="2" fill="#3A2128" />
+              <rect x="43" y="14" width="2" height="2" fill="#3A2128" />
+              <rect x="18" y="16" width="1" height="8" fill="#3A2128" />
+              <rect x="45" y="16" width="1" height="8" fill="#3A2128" />
+              <rect x="19" y="24" width="3" height="1" fill="#3A2128" />
+              <rect x="42" y="24" width="3" height="1" fill="#3A2128" />
+              <rect x="22" y="25" width="20" height="1" fill="#3A2128" />
+
+              {/* Dappled multi-tone green canopy fill */}
+              <rect x="25" y="13" width="14" height="1" fill="#92D65B" />
+              <rect x="21" y="14" width="22" height="2" fill="#92D65B" />
+              <rect x="19" y="16" width="26" height="8" fill="#92D65B" />
+              <rect x="22" y="24" width="20" height="1" fill="#418535" />
+
+              {/* Dappled sunlit leaf highlights & deep olive leaf clusters */}
+              <rect x="24" y="14" width="6" height="2" fill="#C8F391" />
+              <rect x="20" y="16" width="4" height="2" fill="#C8F391" />
+              <rect x="36" y="15" width="4" height="2" fill="#C8F391" />
+              <rect x="19" y="21" width="4" height="3" fill="#63B047" />
+              <rect x="40" y="19" width="5" height="5" fill="#63B047" />
+              <rect x="24" y="23" width="16" height="1" fill="#418535" />
+
+              {renderPixelFace(32, faceY)}
+            </g>
+          )}
+
+          {safeStage >= 3 && (
+            <g>
+              {/* Stage 3: Blooming Mangrove Tomodachi w/ Blossoms, Vines & Full Prop Roots */}
+              {/* Sturdy trunk & wide arching mangrove prop roots */}
+              <rect x="30" y="25" width="1" height="8" fill="#3A2128" />
+              <rect x="33" y="25" width="1" height="8" fill="#3A2128" />
+              <rect x="31" y="25" width="1" height="14" fill="#A87148" />
+              <rect x="32" y="25" width="1" height="14" fill="#825031" />
+              {/* Arching left & right mangrove prop roots */}
+              <rect x="25" y="29" width="5" height="2" fill="#825031" />
+              <rect x="22" y="31" width="3" height="8" fill="#825031" />
+              <rect x="20" y="34" width="2" height="5" fill="#5B341E" />
+              <rect x="27" y="33" width="2" height="6" fill="#5B341E" />
+
+              <rect x="34" y="29" width="5" height="2" fill="#825031" />
+              <rect x="39" y="31" width="3" height="8" fill="#825031" />
+              <rect x="42" y="34" width="2" height="5" fill="#5B341E" />
+              <rect x="35" y="33" width="2" height="6" fill="#5B341E" />
+
+              {/* Delicate hanging mangrove aerial roots */}
+              <rect x="20" y="24" width="1" height="4" fill="#418535" />
+              <rect x="43" y="24" width="1" height="5" fill="#418535" />
+
+              {/* Lush Full Multi-Tiered Canopy */}
+              <rect x="24" y="9" width="16" height="1" fill="#3A2128" />
+              <rect x="19" y="10" width="5" height="1" fill="#3A2128" />
+              <rect x="40" y="10" width="5" height="1" fill="#3A2128" />
+              <rect x="17" y="11" width="2" height="2" fill="#3A2128" />
+              <rect x="45" y="11" width="2" height="2" fill="#3A2128" />
+              <rect x="16" y="13" width="1" height="10" fill="#3A2128" />
+              <rect x="47" y="13" width="1" height="10" fill="#3A2128" />
+              <rect x="17" y="23" width="3" height="1" fill="#3A2128" />
+              <rect x="44" y="23" width="3" height="1" fill="#3A2128" />
+              <rect x="20" y="24" width="24" height="1" fill="#3A2128" />
+
+              <rect x="24" y="10" width="16" height="1" fill="#92D65B" />
+              <rect x="19" y="11" width="26" height="2" fill="#92D65B" />
+              <rect x="17" y="13" width="30" height="10" fill="#92D65B" />
+              <rect x="20" y="23" width="24" height="1" fill="#418535" />
+
+              {/* Dappled sunlit leaves & deep canopy shading */}
+              <rect x="23" y="11" width="7" height="2" fill="#C8F391" />
+              <rect x="18" y="14" width="5" height="2" fill="#C8F391" />
+              <rect x="36" y="12" width="6" height="2" fill="#C8F391" />
+              <rect x="17" y="19" width="5" height="4" fill="#63B047" />
+              <rect x="42" y="18" width="5" height="5" fill="#63B047" />
+              <rect x="22" y="22" width="20" height="1" fill="#418535" />
+
+              {/* Tiny blooming coastal mangrove flowers */}
+              <rect x="21" y="13" width="2" height="2" fill="#FFF4A8" />
+              <rect x="41" y="14" width="2" height="2" fill="#FFD1E1" />
+              <rect x="31" y="11" width="2" height="1" fill="#FFF4A8" />
+              <rect x="43" y="20" width="2" height="2" fill="#FFF4A8" />
+              <rect x="19" y="18" width="2" height="2" fill="#FFD1E1" />
+
+              {renderPixelFace(32, faceY)}
+            </g>
+          )}
+
+          {/* Happy / Celebrating Sparkles */}
+          {(mood === 'celebrating' || mood === 'happy') && (
+            <g>
+              <rect x="13" y="12" width="1" height="3" fill="#68BEE8" />
+              <rect x="12" y="13" width="3" height="1" fill="#68BEE8" />
+              <rect x="13" y="13" width="1" height="1" fill="#FFFFFF" />
+              <rect x="50" y="14" width="1" height="3" fill="#FFE27A" />
+              <rect x="49" y="15" width="3" height="1" fill="#FFE27A" />
+              <rect x="50" y="15" width="1" height="1" fill="#FFFFFF" />
+            </g>
+          )}
+
+          {/* 16-Bit Shaded Pixel Wardrobe Accessories (on exact same pixel grid!) */}
+          {has('hat') && (
+            <g transform={`translate(22, ${hatY})`}>
+              <rect x="5" y="0" width="10" height="1" fill="#3A2128" />
+              <rect x="4" y="1" width="12" height="3" fill="#FFE28C" />
+              <rect x="5" y="1" width="5" height="1" fill="#FFF5C4" />
+              <rect x="4" y="3" width="12" height="1" fill="#4CAEDB" />
+              <rect x="7" y="3" width="2" height="1" fill="#F2857C" />
+              <rect x="11" y="3" width="2" height="1" fill="#F2857C" />
+              <rect x="0" y="4" width="20" height="2" fill="#F5CB6C" />
+              <rect x="2" y="4" width="16" height="1" fill="#FFE79E" />
+              <rect x="1" y="6" width="18" height="1" fill="#3A2128" />
+            </g>
+          )}
+
+          {has('crown') && (
+            <g transform={`translate(24, ${crownY})`}>
+              <rect x="1" y="2" width="14" height="2" fill="#418535" />
+              <rect x="2" y="1" width="3" height="2" fill="#FFD1E1" />
+              <rect x="3" y="1" width="1" height="1" fill="#FFFFFF" />
+              <rect x="6" y="0" width="4" height="3" fill="#FFF39E" />
+              <rect x="7" y="1" width="2" height="1" fill="#FF9E6D" />
+              <rect x="11" y="1" width="3" height="2" fill="#B8ECFF" />
+              <rect x="12" y="1" width="1" height="1" fill="#FFFFFF" />
+            </g>
+          )}
+
+          {has('chime') && (
+            <g transform="translate(8, 12)">
+              <rect x="4" y="0" width="2" height="1" fill="#643B1F" />
+              <rect x="0" y="1" width="10" height="2" fill="#8C593A" />
+              <rect x="1" y="2" width="1" height="3" fill="#5B341E" />
+              <rect x="4" y="2" width="1" height="4" fill="#5B341E" />
+              <rect x="8" y="2" width="1" height="3" fill="#5B341E" />
+              <rect x="0" y="5" width="3" height="2" fill="#FFBFA8" />
+              <rect x="3" y="6" width="3" height="2" fill="#A8E2FA" />
+              <rect x="7" y="5" width="3" height="2" fill="#FFF0A8" />
+            </g>
+          )}
+        </g>
+
+        {/* Blue & Gold Coastal Watering Can on Left Mudflat */}
+        {has('can') && (
+          <g transform="translate(8, 32)">
+            <rect x="0" y="1" width="2" height="2" fill="#FFE07D" />
+            <rect x="2" y="2" width="1" height="2" fill="#C48F35" />
+            <rect x="3" y="1" width="6" height="6" fill="#77C4EB" />
+            <rect x="4" y="2" width="2" height="4" fill="#BAE8FF" />
+            <rect x="9" y="2" width="2" height="4" fill="#3A2128" />
+            <rect x="10" y="3" width="1" height="2" fill="#77C4EB" />
+            <rect x="3" y="7" width="6" height="1" fill="#3A2128" />
+          </g>
+        )}
+      </svg>
 
       {/* Official Mud Crab Pal resting on right edge of mudflat */}
       {has('crab') && (
         <div className="pointer-events-none absolute right-[8%] bottom-[16%] z-20">
-          <OfficialPixelSprite name="crab" size={Math.max(12, Math.round(size * 0.21))} />
+          <OfficialPixelSprite name="crab" size={Math.max(12, Math.round(size * 0.2))} />
         </div>
       )}
     </div>
