@@ -1,0 +1,8 @@
+{
+  "name": "Menu That Feeds a Mangrove",
+  "description": "An interactive coastal cafe and mangrove conservation game set in Bang Khun Thian. Cook local dishes, earn shells, and grow a mangrove sapling.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

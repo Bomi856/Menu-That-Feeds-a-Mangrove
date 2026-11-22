@@ -1,0 +1,115 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global safety net: deny all reads and writes by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isVerifiedUser() && request.auth.uid == userId;
+    }
+
+    function isValidExplorer(exp) {
+      return exp is map
+        && exp.keys().hasAll(['name', 'hair', 'skin', 'apron', 'style', 'accessory'])
+        && exp.keys().hasOnly(['name', 'hair', 'skin', 'apron', 'style', 'accessory', 'gender', 'pronouns'])
+        && (!('gender' in exp) || (exp.gender is string && exp.gender in ['girl', 'boy']))
+        && (!('pronouns' in exp) || (exp.pronouns is string && exp.pronouns in ['he', 'she', 'they', 'none']))
+        && exp.name is string && exp.name.size() >= 1 && exp.name.size() <= 24
+        && exp.hair is int && exp.hair >= 0 && exp.hair <= 10
+        && exp.skin is int && exp.skin >= 0 && exp.skin <= 10
+        && exp.apron is int && exp.apron >= 0 && exp.apron <= 10
+        && exp.style is int && exp.style >= 0 && exp.style <= 10
+        && exp.accessory is int && exp.accessory >= 0 && exp.accessory <= 10;
+    }
+
+    function isValidUserProgress(data) {
+      return data.keys().hasAll([
+          'uid', 'theme', 'shellsPending', 'shellsFed', 'kp', 'mealsCooked',
+          'cookedCounts', 'readStories', 'solvedQuizzes',
+          'unlockedWardrobe', 'equippedWardrobe',
+          'lastDaily', 'streak', 'dailyDate',
+          'dailyCooked', 'dailyQuizzes', 'dailyFed',
+          'explorer', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'uid', 'theme', 'lang', 'shellsPending', 'shellsFed', 'kp', 'mealsCooked',
+          'cookedCounts', 'readStories', 'solvedQuizzes',
+          'unlockedWardrobe', 'equippedWardrobe',
+          'lastDaily', 'streak', 'dailyDate',
+          'dailyCooked', 'dailyQuizzes', 'dailyFed',
+          'explorer', 'saplingName', 'createdAt', 'updatedAt'
+        ])
+        && data.uid is string && data.uid == request.auth.uid && isValidId(data.uid)
+        && data.theme is string && data.theme.size() <= 16 && data.theme in ['blue', 'green', 'pink']
+        && data.shellsPending is int && data.shellsPending >= 0 && data.shellsPending <= 10000
+        && data.shellsFed is int && data.shellsFed >= 0 && data.shellsFed <= 100000
+        && data.kp is int && data.kp >= 0 && data.kp <= 1000000
+        && data.mealsCooked is int && data.mealsCooked >= 0 && data.mealsCooked <= 100000
+        && data.cookedCounts is map && data.cookedCounts.size() <= 40
+        && data.readStories is map && data.readStories.size() <= 40
+        && data.solvedQuizzes is map && data.solvedQuizzes.size() <= 40
+        && data.unlockedWardrobe is list && data.unlockedWardrobe.size() <= 10
+        && (data.unlockedWardrobe.size() == 0 || (data.unlockedWardrobe[0] is string && data.unlockedWardrobe[0].size() <= 32))
+        && data.equippedWardrobe is list && data.equippedWardrobe.size() <= 10
+        && (data.equippedWardrobe.size() == 0 || (data.equippedWardrobe[0] is string && data.equippedWardrobe[0].size() <= 32))
+        && data.lastDaily is string && data.lastDaily.size() <= 64
+        && data.streak is int && data.streak >= 0 && data.streak <= 10000
+        && data.dailyDate is string && data.dailyDate.size() <= 64
+        && data.dailyCooked is int && data.dailyCooked >= 0 && data.dailyCooked <= 1000
+        && data.dailyQuizzes is int && data.dailyQuizzes >= 0 && data.dailyQuizzes <= 1000
+        && data.dailyFed is int && data.dailyFed >= 0 && data.dailyFed <= 1000
+        && (!('lang' in data) || (data.lang is string && data.lang in ['en', 'th', 'my']))
+        && isValidExplorer(data.explorer)
+        && (!('saplingName' in data) || (data.saplingName is string && data.saplingName.size() >= 1 && data.saplingName.size() <= 24))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    match /users/{userId} {
+      allow get: if isValidId(userId) && isOwner(userId);
+      allow list: if false;
+      allow create: if isValidId(userId)
+        && isOwner(userId)
+        && isValidUserProgress(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(userId)
+        && isOwner(userId)
+        && isValidUserProgress(incoming())
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'theme', 'lang', 'shellsPending', 'shellsFed', 'kp', 'mealsCooked',
+          'cookedCounts', 'readStories', 'solvedQuizzes',
+          'unlockedWardrobe', 'equippedWardrobe',
+          'lastDaily', 'streak', 'dailyDate',
+          'dailyCooked', 'dailyQuizzes', 'dailyFed',
+          'explorer', 'saplingName', 'updatedAt'
+        ]);
+      allow delete: if isValidId(userId) && isOwner(userId);
+    }
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "entities": {
+    "UserProgress": {
+      "title": "UserProgress",
+      "description": "Persisted mangrove cafe game progress, avatar settings, and Tomodachi state for a signed-in user.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Owner Firebase Auth UID."
+        },
+        "theme": {
+          "type": "string",
+          "enum": ["blue", "green", "pink"],
+          "maxLength": 16
+        },
+        "lang": {
+          "type": "string",
+          "enum": ["en", "th", "my"],
+          "maxLength": 8,
+          "description": "Preferred UI language (English, Thai, or Burmese)."
+        },
+        "shellsPending": {
+          "type": "integer",
+          "description": "Unfed shells waiting in the basket."
+        },
+        "shellsFed": {
+          "type": "integer",
+          "description": "Total shells fed to the mangrove sapling."
+        },
+        "kp": {
+          "type": "integer",
+          "description": "Knowledge Points earned from cooking, reading, and quizzes."
+        },
+        "mealsCooked": {
+          "type": "integer",
+          "description": "Total number of dishes prepared."
+        },
+        "cookedCounts": {
+          "type": "object",
+          "description": "Map of dish ID to times cooked."
+        },
+        "readStories": {
+          "type": "object",
+          "description": "Map of dish ID to whether its mangrove story was read."
+        },
+        "solvedQuizzes": {
+          "type": "object",
+          "description": "Map of dish ID to whether its eco-quiz was solved."
+        },
+        "unlockedWardrobe": {
+          "type": "array",
+          "description": "List of unlocked wardrobe accessory IDs."
+        },
+        "equippedWardrobe": {
+          "type": "array",
+          "description": "List of currently equipped accessory IDs."
+        },
+        "lastDaily": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "streak": {
+          "type": "integer"
+        },
+        "dailyDate": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "dailyCooked": {
+          "type": "integer"
+        },
+        "dailyQuizzes": {
+          "type": "integer"
+        },
+        "dailyFed": {
+          "type": "integer"
+        },
+        "explorer": {
+          "type": "object",
+          "description": "Avatar appearance, gender version ('girl' or 'boy'), pronouns, and nickname."
+        },
+        "saplingName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 24,
+          "description": "Custom nickname for the player's Mangrove Tomodachi sapling."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "uid",
+        "theme",
+        "shellsPending",
+        "shellsFed",
+        "kp",
+        "mealsCooked",
+        "cookedCounts",
+        "readStories",
+        "solvedQuizzes",
+        "unlockedWardrobe",
+        "equippedWardrobe",
+        "lastDaily",
+        "streak",
+        "dailyDate",
+        "dailyCooked",
+        "dailyQuizzes",
+        "dailyFed",
+        "explorer",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProgress" },
+      "description": "Private save document for each signed-in player's mangrove cafe progress."
+    }
+  }
+}

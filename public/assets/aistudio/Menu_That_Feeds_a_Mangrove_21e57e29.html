@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en" data-theme="blue">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Menu That Feeds a Mangrove</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Inter:wght@400;600;800&family=Noto+Sans+Thai:wght@400;600&display=swap">
+<style>
+/* ===== THEME TOKENS (edit colors here) ===== */
+@property --bg{syntax:'<color>';inherits:true;initial-value:#F2FAFF}
+@property --bg2{syntax:'<color>';inherits:true;initial-value:rgba(150,208,238,.32)}
+@property --rule{syntax:'<color>';inherits:true;initial-value:#D5ECF9}
+@property --pink{syntax:'<color>';inherits:true;initial-value:#FF9EBB}
+@property --hot{syntax:'<color>';inherits:true;initial-value:#E0508A}
+@property --teal{syntax:'<color>';inherits:true;initial-value:#CDBDF7}
+@property --yellow{syntax:'<color>';inherits:true;initial-value:#FFE59A}
+@property --art{syntax:'<color>';inherits:true;initial-value:#E4DAFF}
+@property --th{syntax:'<color>';inherits:true;initial-value:#7B5CD6}
+@property --lv{syntax:'<color>';inherits:true;initial-value:#9C8FC4}
+@property --lbg{syntax:'<color>';inherits:true;initial-value:#F6FCFF}
+@property --lst{syntax:'<color>';inherits:true;initial-value:rgba(150,208,238,.32)}
+@property --lbt{syntax:'<color>';inherits:true;initial-value:#FFE9F1}
+@property --t1{syntax:'<color>';inherits:true;initial-value:#BFE3F7}
+@property --t2{syntax:'<color>';inherits:true;initial-value:#FFE9A8}
+@property --t3{syntax:'<color>';inherits:true;initial-value:#FFC4D9}
+/* THEME: blue is the default. Green and orange are overrides further down. */
+:root{--bg:#F2FAFF;--bg2:rgba(150,208,238,.32);--ol:#5B2A4A;--paper:#FFFFFF;--rule:#D5ECF9;--pink:#FF9EBB;--hot:#E0508A;--teal:#CDBDF7;--yellow:#FFE59A;--art:#E4DAFF;--th:#7B5CD6;--lv:#9C8FC4;--lbg:#F6FCFF;--lst:rgba(150,208,238,.32);--lbt:#FFE9F1;--t1:#BFE3F7;--t2:#FFE9A8;--t3:#FFC4D9;
+transition:--bg .7s ease,--bg2 .7s ease,--rule .7s ease,--pink .7s ease,--hot .7s ease,--teal .7s ease,--yellow .7s ease,--art .7s ease,--th .7s ease,--lv .7s ease,--lbg .7s ease,--lst .7s ease,--lbt .7s ease,--t1 .7s ease,--t2 .7s ease,--t3 .7s ease;--ink:#4A2340;--soft:#6E4563;--toast:#5B2A4A;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
+:root[data-theme="green"]{--bg:#F3FBEF;--bg2:rgba(150,210,140,.35);--rule:#DDEFD0;--pink:#8FD9A8;--hot:#258A5C;--teal:#BFE8CC;--art:#D9F2D0;--th:#2A7F55;--lv:#6FAF8A;--lbg:#F6FFF2;--lst:rgba(150,210,140,.35);--lbt:#E3F6E8;--t1:#BDE8B6;--t2:#FFE9A8;--t3:#C9EBD9}
+:root[data-theme="orange"]{--bg:#FFF8EF;--bg2:rgba(255,190,120,.35);--rule:#FBE5CC;--pink:#FFB27A;--hot:#D4540F;--teal:#FFD6A8;--art:#FFE3C4;--th:#B5530F;--lv:#E39A5C;--lbg:#FFF9F1;--lst:rgba(255,190,120,.35);--lbt:#FFEBD7;--t1:#FFD3A6;--t2:#FFF0A8;--t3:#FFC4B8}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#2A2650;--bg2:rgba(185,166,240,.16);--ol:#2A1230;--toast:#FF9EBB}:root[data-theme="green"]{--bg:#1D3A2B;--bg2:rgba(143,217,168,.14)}:root[data-theme="orange"]{--bg:#3A2A1D;--bg2:rgba(255,178,122,.14)}}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Inter','Noto Sans Thai',system-ui,sans-serif;font-size:17px;line-height:1.5;color:var(--ink);background-color:var(--bg);
+background-image:linear-gradient(90deg,var(--bg2) 50%,transparent 50%),linear-gradient(var(--bg2) 50%,transparent 50%);background-size:56px 56px;image-rendering:pixelated}
+button{font:inherit;color:inherit;cursor:pointer}
+svg{display:block;image-rendering:pixelated}
+/* notched pixel border: no rounded corners, stepped box-shadow */
+.px{margin:4px;box-shadow:0 -4px 0 0 var(--ol),0 4px 0 0 var(--ol),-4px 0 0 0 var(--ol),4px 0 0 0 var(--ol),0 8px 0 0 rgba(0,0,0,.18)}
+.lbl{font-family:'Pixelify Sans',monospace;font-weight:700;font-size:13px;line-height:1.3;letter-spacing:.06em;text-transform:uppercase}
+/* ===== HUD ===== */
+.hud{position:sticky;top:0;z-index:6;background:var(--pink);margin:4px 8px 0;padding:8px 10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.lv{background:var(--lv);color:#fff;padding:6px 8px;text-align:center;min-width:52px}
+.pill{background:var(--paper);display:flex;align-items:center;gap:6px;padding:4px 10px 4px 6px;min-height:44px;flex:1;min-width:92px;font-weight:700}
+.pill b{font-family:'Pixelify Sans',monospace;font-size:17px}
+main{max-width:620px;margin:0 auto;padding:22px 14px 30px}
+/* ===== NOTEBOOK PAPER ===== */
+.note{position:relative;background:repeating-linear-gradient(transparent 0 25px,var(--rule) 25px 27px),var(--paper);padding:16px 14px 16px 46px;margin:18px 4px}
+.note::before{content:"";position:absolute;left:36px;top:0;bottom:0;width:2px;background:var(--pink)}
+.note::after{content:"";position:absolute;left:8px;top:0;bottom:0;width:14px;background:radial-gradient(circle,var(--hot) 5px,transparent 6px) 0 0/14px 44px repeat-y}
+.tape{position:absolute;top:-14px;left:50px;width:120px;height:20px;transform:rotate(-2deg);background:repeating-linear-gradient(90deg,var(--t1) 0 12px,var(--t2) 12px 24px,var(--t3) 24px 36px)}
+h1{font-family:'Pixelify Sans',sans-serif;font-size:34px;line-height:1.05;margin:4px 0;color:var(--hot)}
+h2{font-family:'Pixelify Sans',sans-serif;font-size:26px;margin:0;line-height:1.1}
+.th{font-weight:600;color:var(--th)}
+.cap{color:var(--soft);font-size:15px}
+/* ===== DISH CARD ===== */
+.art{display:flex;align-items:center;justify-content:center;gap:12px;background:var(--art);padding:10px;margin:8px 0}
+.art .lbl{font-size:11px;color:var(--ol);max-width:130px}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 6px}
+.btn{min-height:46px;padding:8px 16px;background:var(--yellow);border:0;font-family:'Pixelify Sans',sans-serif;font-size:18px;font-weight:700;margin:4px;box-shadow:0 -4px 0 0 var(--ol),0 4px 0 0 var(--ol),-4px 0 0 0 var(--ol),4px 0 0 0 var(--ol),0 8px 0 0 rgba(0,0,0,.18)}
+.btn.go{background:var(--hot);color:#fff}
+.btn:active{transform:translateY(3px)}
+.btn:disabled{opacity:.5}
+.story{display:none;border-top:2px dashed var(--ol);margin-top:8px;padding-top:6px}
+.open .story{display:block}
+.layer{padding:6px 0;opacity:0;transform:translateY(6px)}
+.open .layer{animation:in .5s cubic-bezier(.3,1.5,.5,1) forwards}
+.open .layer:nth-child(2){animation-delay:.3s}
+.open .layer:nth-child(3){animation-delay:.6s}
+@keyframes in{to{opacity:1;transform:none}}
+.n{display:inline-block;background:var(--hot);color:#fff;padding:0 6px;margin-right:6px;font-family:'Pixelify Sans',monospace;font-size:15px}
+.tc{display:inline-block;font-size:12px;background:var(--yellow);padding:0 6px;margin-left:4px}
+/* ===== BADGES ===== */
+.badges{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:12px 4px}
+.bd{background:var(--paper);padding:8px 4px;text-align:center;font-size:13px;display:flex;flex-direction:column;align-items:center;gap:4px;line-height:1.1}
+.bd.lock svg{filter:grayscale(1) brightness(.75);opacity:.45}
+.rew p{margin:4px 0;font-size:16px}
+/* ===== STICKY SAPLING CORNER ===== */
+.panel{position:sticky;bottom:0;z-index:6;background:var(--teal);margin:0 8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px))}
+.in{max-width:620px;margin:0 auto}
+.top{display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:center}
+.slot{width:96px;height:96px;background:var(--paper);display:flex;align-items:center;justify-content:center;position:relative}
+.slot .lbl{position:absolute;top:2px;left:0;right:0;text-align:center;font-size:9px;color:var(--soft)}
+.slot.grow svg{animation:pop .8s cubic-bezier(.3,1.7,.5,1)}
+@keyframes pop{0%{transform:scale(.5)}70%{transform:scale(1.15)}100%{transform:scale(1)}}
+.stage{font-family:'Pixelify Sans',sans-serif;font-size:22px;font-weight:700;color:var(--ol)}
+.seg{display:flex;gap:3px;margin:6px 0}
+.seg i{flex:1;height:14px;background:var(--paper);box-shadow:0 0 0 2px var(--ol)}
+.seg i.on{background:var(--hot)}
+.stats{font-size:15px;color:var(--ol)}
+.tray{display:flex;gap:6px;flex-wrap:wrap;align-items:center;min-height:52px;margin:8px 0 2px}
+.shell{width:48px;height:48px;background:var(--paper);border:0;padding:6px;margin:3px;box-shadow:0 -3px 0 0 var(--ol),0 3px 0 0 var(--ol),-3px 0 0 0 var(--ol),3px 0 0 0 var(--ol);animation:drop .7s cubic-bezier(.3,1.6,.5,1)}
+@keyframes drop{from{transform:translateY(-50px);opacity:0}to{transform:none;opacity:1}}
+.hint{font-size:15px;color:var(--ol)}
+.toast{position:fixed;left:50%;top:calc(70px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--toast);color:var(--paper);padding:8px 16px;max-width:90%;text-align:center;font-weight:700;opacity:0;pointer-events:none;z-index:9}
+.toast.on{opacity:1}
+.mini{background:none;border:0;text-decoration:underline;color:var(--ink);min-height:44px;font-size:14px}
+.load{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px;text-align:center;color:#4A2340;background-color:var(--lbg);background-image:linear-gradient(90deg,var(--lst) 50%,transparent 50%),linear-gradient(var(--lst) 50%,transparent 50%);background-size:56px 56px}
+.lcard{background:#fff;padding:22px 20px 18px;width:min(340px,88vw);display:flex;flex-direction:column;align-items:center;gap:12px;box-shadow:0 -4px 0 0 #5B2A4A,0 4px 0 0 #5B2A4A,-4px 0 0 0 #5B2A4A,4px 0 0 0 #5B2A4A,0 8px 0 0 rgba(91,42,74,.18)}
+.lcard .lbl{color:var(--hot)}
+.gnd{width:84px;height:10px;border-radius:50%;background:rgba(91,42,74,.14);margin-top:-8px}
+.lbar{width:100%;height:20px;background:var(--lbt);overflow:hidden;box-shadow:0 0 0 3px #5B2A4A}
+.lbar i{display:block;height:100%;width:0;background:var(--pink);transition:width 1.3s linear}
+.tsw{display:flex;gap:10px;margin-left:auto;padding:0 6px}
+.tsw button{width:44px;height:44px;border:0;cursor:pointer;box-shadow:0 0 0 3px var(--ol);transition:transform .3s cubic-bezier(.3,1.7,.5,1)}
+.tsw button[aria-pressed="true"]{box-shadow:0 0 0 3px var(--ol),0 0 0 6px #fff;transform:scale(1.1)}
+.modal{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;background:rgba(30,10,30,.6);padding:16px;overflow:auto}
+.modal.on{display:flex}
+.mbox{background:var(--paper);padding:18px;max-width:420px;margin:8px}
+.mbox p{margin:8px 0}
+.guide{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:10px 4px}
+.gc{background:var(--paper);padding:6px;text-align:center;font-size:13px;display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1.15}
+.gc.lock svg{filter:grayscale(1) brightness(.75);opacity:.45}
+.quiz{margin-top:8px;border-top:2px dashed var(--ol);padding-top:6px}
+.ok{font-weight:700;color:#2F8F5B}
+.bubble{display:none;background:var(--paper);padding:6px 10px;margin:8px 4px;font-size:15px}
+.bubble.on{display:block}
+.acc{position:absolute;inset:0;pointer-events:none}
+.ac{position:absolute}.a0{top:0;left:34px}.a1{bottom:0;left:0}.a2{bottom:0;right:0}
+.mascot{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%) scale(0);z-index:25;pointer-events:none;text-align:center;transition:transform .5s cubic-bezier(.34,1.8,.5,1)}
+.mascot.on{transform:translate(-50%,-50%) scale(1)}
+.mascot.on #mspr{animation:hop .7s ease-in-out infinite}
+.mascot .say{background:var(--paper);padding:6px 12px;margin:0 8px 14px;font-weight:700}
+@keyframes hop{0%,100%{transform:translateY(0) scale(1,1)}20%{transform:translateY(0) scale(1.15,.85)}50%{transform:translateY(-28px) scale(.9,1.12)}80%{transform:translateY(0) scale(1.1,.9)}}
+.cf{position:fixed;top:-30px;z-index:24;pointer-events:none;animation:fall 1.8s linear forwards}
+@keyframes fall{to{transform:translateY(115vh) rotate(360deg)}}
+#mus{min-width:84px}
+.pan{display:flex;align-items:flex-end;justify-content:center;gap:6px;background:var(--art);padding:10px;margin:12px 4px;min-height:84px}
+.shelf{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:12px 4px}
+.ing{background:#fff;border:0;padding:6px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:13px;line-height:1.15;box-shadow:0 0 0 3px var(--ol);min-height:90px}
+.ing.used{opacity:.4}
+.shake{animation:shk .4s}
+@keyframes shk{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.stars{font-size:32px;color:#FFB400;letter-spacing:4px;text-align:center}
+input{font:inherit;width:100%;min-height:46px;padding:8px 10px;border:0;background:#fff;color:#4A2340;margin:8px 0 4px;box-shadow:0 -3px 0 var(--ol),0 3px 0 var(--ol),-3px 0 0 var(--ol),3px 0 0 var(--ol)}
+.sw{display:flex;gap:10px;margin:6px 0 14px;flex-wrap:wrap}
+.sw button{width:44px;height:44px;border:0;cursor:pointer;box-shadow:0 0 0 3px var(--ol)}
+.sw button.on{box-shadow:0 0 0 3px var(--ol),0 0 0 7px var(--hot)}
+.qr{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 4px;border-bottom:2px dashed var(--line);font-weight:600}
+.qr.dn{opacity:.55}
+.me{background:var(--yellow)}
+.prow{display:flex;gap:12px;align-items:center}
+#avb{padding:4px 8px}
+#ltip{font-size:20px;line-height:1.25;max-width:300px;min-height:52px}
+.pop{animation:tp .6s cubic-bezier(.3,1.7,.5,1)}
+@keyframes tp{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+.bn{animation:bn .65s ease-out}
+@keyframes bn{0%{transform:translateY(0) scale(1)}35%{transform:translateY(-24px) scale(.92,1.1)}60%{transform:translateY(0) scale(1.12,.88)}80%{transform:translateY(-6px)}100%{transform:none}}
+@media (prefers-reduced-motion:reduce){.cf{display:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.layer{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div class="load" id="load"><div class="lcard"><div class="lbl">+ Bang Khun Thian +</div><div id="lsp"></div><div class="gnd"></div><div class="lbar"><i id="lfill"></i></div><div class="cap" id="ltip" style="max-width:300px"></div><div class="lbl">LOADING... กำลังโหลด</div></div></div>
+<div class="modal" id="howto" role="dialog" aria-modal="true" aria-label="How to play"><div class="mbox px"><h2>How to play · วิธีเล่น</h2><p><span class="n">1</span><b>Cook & read.</b> Cook a dish in the mini kitchen, then open its Story to read all 3 layers. +1 KP (knowledge point).</p><p><span class="n">2</span><b>Answer the quick question.</b> A right answer gives +1 shell and +3 KP.</p><p><span class="n">3</span><b>Feed your sapling.</b> Tap shells in the bottom corner. Grow it, fill your field guide, and spend KP to unlock hats and friends.</p><p><span class="n">4</span><b>Earn points.</b> Every action scores. Finish the daily quests and climb today’s ranking. Each dish can be cooked once a day, so come back tomorrow!</p><button class="btn go" id="hclose">Let’s go! · เริ่มเลย</button></div></div>
+<div class="modal" id="cook" role="dialog" aria-modal="true" aria-label="Cooking"><div class="mbox px" id="cbox"></div></div>
+<div class="modal" id="prof" role="dialog" aria-modal="true" aria-label="Create your avatar"><div class="mbox px"><h2>Your explorer · นักสำรวจ</h2><div class="prow" style="justify-content:center;margin:10px 0" id="pav"></div><label class="lbl" for="pname">Nickname</label><input id="pname" maxlength="14" autocomplete="off" placeholder="e.g. CrabFan"><div class="cap">Saved on this device, no account needed. Your nickname shows on the public ranking, so please don’t use your real name.</div><div class="lbl" style="margin-top:12px">Hair</div><div class="sw" id="swh"></div><div class="lbl">Skin</div><div class="sw" id="swk"></div><div class="lbl">Shirt</div><div class="sw" id="sws"></div><button class="btn go" id="psave">Save · บันทึก</button><button class="btn" id="pguest">Play as guest</button></div></div>
+<header class="hud px" aria-label="Status">
+<div class="lv px lbl" id="lv">LV 1</div>
+<div class="pill px"><span id="i1"></span><b id="hMeals">0</b><span class="cap">meals</span></div>
+<div class="pill px"><span id="i2"></span><b id="hFed">0</b><span class="cap">fed</span></div>
+<div class="pill px"><b id="hKp">0</b><span class="cap">KP</span></div>
+<button class="btn" id="help" aria-label="How to play">?</button>
+<button class="btn" id="mus" aria-label="Toggle music and sounds">♪ OFF</button>
+<button class="btn" id="avb" aria-label="Edit profile and avatar"></button>
+<div class="tsw" role="group" aria-label="Colour theme"><button data-t="blue" style="background:#8FD3F4" aria-label="Blue theme" aria-pressed="true"></button><button data-t="green" style="background:#8FD9A8" aria-label="Green theme" aria-pressed="false"></button><button data-t="orange" style="background:#FFB27A" aria-label="Orange theme" aria-pressed="false"></button></div>
+</header>
+
+<main>
+<div class="note px">
+<div class="tape"></div>
+<div class="lbl" style="color:var(--hot)">+ BANG KHUN THIAN +</div>
+<h1>Menu That Feeds a Mangrove</h1>
+<div class="th">เมนูที่เลี้ยงป่าชายเลน</div>
+<p>Order a dish, get a shell, feed the sapling. Every meal grows a mangrove.</p>
+<div class="cap">สั่งอาหาร รับเปลือกหอย ป้อนให้ต้นกล้าโต</div>
+</div>
+
+<div class="note px"><div class="tape"></div><div class="prow"><div id="tAv"></div><div><h2 id="tName">Guest</h2><div class="th" id="tTitle"></div><div class="cap">Today <b id="tPts">0</b> pts · Total <b id="tTot">0</b> pts</div></div></div><h2 style="margin-top:14px;font-size:21px">Daily quests · ภารกิจวันนี้</h2><div id="quests"></div><div class="cap" style="margin-top:8px"><b>Shells</b> (cook each dish once a day, quizzes, check-in, quests) feed your sapling. <b>KP</b> (learning something new) unlocks hats and friends. <b>Points</b> (everything you do) climb the ranking and your title.</div></div>
+<div class="note px"><div class="tape"></div><h2>Daily Ranking · อันดับวันนี้</h2><div class="cap" id="rankMsg"></div><div id="rank"></div></div>
+<div id="menu"></div>
+<div class="note px"><div class="tape"></div><h2>Field Guide · สมุดภาคสนาม</h2><div class="cap">Read a dish’s story to meet it. Get the quiz right for a star.</div><div class="guide" id="guide"></div><h2 style="margin-top:14px">Wardrobe · ตู้เสื้อผ้า</h2><div class="cap">Earn KP by learning, then dress up your sapling.</div><div class="guide" id="wardrobe"></div></div>
+
+<div class="note px">
+<div class="tape"></div>
+<h2>Cookbook & Badges · สมุดสูตร</h2>
+<div class="cap">Cook every dish and grow your sapling to collect them all.</div>
+<div class="badges" id="badges"></div>
+<div class="rew" id="rewards"></div>
+</div>
+<div style="text-align:center"><button class="mini" id="reset">Reset progress · เริ่มใหม่</button></div>
+</main>
+
+<!-- ===== STICKY SAPLING CORNER ===== -->
+<section class="panel px" aria-label="Sapling corner">
+<div class="in">
+<div class="top">
+<div class="slot px" id="slot"><span class="lbl">ART SLOT</span><div id="art"></div><div class="acc" id="acc"></div></div>
+<div>
+<div class="stage" id="stage"></div>
+<div class="seg" id="seg" aria-label="Sediment"></div>
+<div class="stats" id="stats"></div>
+</div>
+</div>
+<div class="bubble px" id="bub"></div>
+<div class="tray" id="tray"></div>
+<button class="btn" id="daily">Daily check-in +1 shell · เช็กอิน</button>
+<div class="stats" id="streak"></div>
+</div>
+</section>
+<div class="toast px" id="toast" role="status"></div>
+<div class="mascot" id="mascot" aria-live="polite"><div class="say px" id="msay"></div><div id="mspr"></div></div>
+
+<script>
+/* ===== 1. PIXEL SPRITES — 12x12 grids. Swap with your own art or edit the letters. ===== */
+var PAL={d:'#6B6475',D:'#8E889B',l:'#B6E04F',o:'#5B2A4A',w:'#FFFFFF',c:'#FFF3D0',p:'#F59BBB',P:'#D9477F',r:'#E24D4D',y:'#FFD966',Y:'#E0A83B',g:'#7BC47F',G:'#2F8F5B',b:'#6EC6E0',B:'#3C8FB8',n:'#B87850',N:'#7A4A33',s:'#F3DFAE',k:'#FFC9A8'};
+var SP={
+shell:["............","...oooooo...","..opkkkkpo..",".opkpkkpkpo.",".opkpkkpkpo.","opkpkpkpkpko","opkpkpkpkpko","opkpkpkpkpko",".opkpkpkpko.","..oopppppoo.","....oooooo..","............"],
+heart:["............",".oooo.oooo..","orrrrorrrro.","orrwrrrrrro.","orrrrrrrrro.",".orrrrrrro..","..orrrrro...","...orrro....","....oro.....",".....o......","............","............"],
+cockle:["............","...oooooo...","..osssssso..",".osnsnsnsno.","osnsnsnsnsno","osnsnsnsnsno","osnsnsnsnsno",".osnsnsnsno.","..ossssssso.","...oooooo...","............","............"],
+crab:[".oo......oo.","orro....orro","orro....orro",".oo.oooo.oo.","..oorrrroo..",".orwrrrrwro.",".orrrrrrrro.","..orrrrrro..",".o.oooooo.o.","o..o.oo.o..o","............","............"],
+shrimp:["....oooo....","..ooppppoo..",".oppppwppko.",".oppooppppo.",".opo..oppo..","..o....opo..","......oppo..","....ooppo...","..oopppppo..",".oppkokpo...",".okk.o.oo...","............"],
+blite:["............","....g..g....","...gGg.gGg..","..g.gGgGg.g.","..gGgGGGgGg.","...gGGGGGg..","....gGGGg...",".....gGg....",".....nNn....",".....nNn....","..ooonNnooo.","............"],
+dessert:["............","............","....nnnn....","..nnNNNNnn..",".nnNnnnnNnn.",".oyyyyyyyyo.",".oyyyyyyyyo.",".oyyyyyyyyo.","..oyyyyyyo..","wwwwwwwwwwww",".wwwwwwwwww.","............"],
+s0:["............","............","............","............","............","............","....yy......","....nnnn....","..nnNNNNnn..",".nNNNNNNNNn.",".NNNNNNNNNN.","............"],
+s1:["............","............","...gg..gg...","..gGGggGGg..","...gGGGGg...",".....gG.....",".....gG.....","..nnnnnnnn..",".nNNNNNNNNn.",".NNNNNNNNNN.","............","............"],
+s2:["............","....gggg....","..ggGggGgg..",".ggGggggGgg.",".gGggGggGgg.","..ggGggGgg..","....ggGg....",".....nN.....",".....nN.....","....nnNNnn..",".NNNNNNNNNN.","............"],
+s3:["....oooo....","..ooggggoo..",".oggggggggo.",".oggoggoggo.",".ogpggggpgo.","..ooggggoo..",".....nN.....",".....nN.....","....nnNn....","...n.nN.n...","BBBBBBBBBBBB","bbbbbbbbbbbb"],
+hat:["............","............","....oooo....","...oYYYYo...","..oYYnnYYo..","ooYYYYYYYYoo","oYYYYYYYYYYo",".oooooooooo.","............","............","............","............"],
+can:["............","......ooo...","....ooBBBo..","..oooBbbBo..",".oBBBBBBBoo.","oBbbBBBBBoBo","oBBBBBBBBoBo",".oBBBBBBBoo.","..oooooooo..","............","............","............"],
+garlic:["............",".....oo.....",".....co.....","....occo....","...occcco...","..occcccco..","..occwccco..","..occwccco..","...occcco...","....oooo....","............","............"],
+chili:["........oo..",".......ogGo.","......orrro.",".....orrro..","....orrro...","...orrro....","..orrro.....",".orrro......",".orro.......","..oo........","............","............"],
+lime:["............","...oooooo...","..ollllllo..",".olllwllllo.",".ollllllllo.",".ollllllllo.",".ollllllllo.","..ollllllo..","...oooooo...","............","............","............"],
+basil:["............","...oo..oo...","..oggooggo..",".oggggggggo.",".ogGggggGgo.","..oggggggo..","....oGGo....",".....GG.....",".....GG.....","............","............","............"],
+coconut:["............","...oooooo...","..onnnnnno..",".onwwwwwwno.",".onwwwwwwno.",".onwwwwwwno.",".onnwwwwnno.","..onnnnnno..","...oooooo...","............","............","............"],
+sugar:["............","............","...oooooo...","..oYyyyyYo..",".oYyyyyyyYo.",".oYyyyyyyYo.",".oYYyyyyYYo.","..oYYYYYYo..","...oooooo...","............","............","............"],
+pan:["............","...w....w...","....w..w....","............",".oooooooooo.","oddddddddddo","oddDDDDDDddo",".oddddddddo.","..oooooooo..","...n....n...","............","............"],
+skip:["............","...oo..oo...","..owoowowo..","..oGGGGGGo..",".oGgggggggGo","oGgpgggggpGo","oGgggoogggGo",".oGgggggggGo","..oGGGGGGGo.",".oGG.oo.GGo.","............","............"]};
+var IMG={}; /* OWN ART: IMG.cockle='data:image/png;base64,...' replaces that sprite. Keys: shell heart cockle crab shrimp blite dessert s0-s3 hat can */
+function spr(k,px){if(IMG[k])return '<img src="'+IMG[k]+'" width="'+px+'" height="'+px+'" style="image-rendering:pixelated" alt="">';var h='<svg viewBox="0 0 12 12" width="'+px+'" height="'+px+'" shape-rendering="crispEdges" aria-hidden="true">';SP[k].forEach(function(r,y){for(var x=0;x<r.length;x++){var c=PAL[r[x]];if(c)h+='<rect x="'+x+'" y="'+y+'" width="1" height="1" fill="'+c+'"/>'}});return h+'</svg>'}
+
+/* ===== 2. DISH DATA — swap in real dishes and verified stories ===== */
+var DISHES=[
+{id:'cockle',en:'Cockles',th:'หอยแครง',fish:'A local farmer raises cockles on the mud flats and checks the water every tide.',mang:'Mangrove roots hold the mud that cockles live in.',shell:'The empty shells go to a collection bin, then into the shore barrier.'},
+{id:'crab',en:'Mud Crab',th:'ปูทะเล',fish:'Crab fishers set traps near the mangrove channels.',mang:'Young crabs shelter in the roots when the tide goes out.',shell:'Crab shells are crushed or stacked to slow waves along the shore.'},
+{id:'shrimp',en:'Shrimp',th:'กุ้ง',fish:'Shrimp farms nearby depend on clean water with the right salt level.',mang:'The forest filters runoff before it reaches the farms.',shell:'Shrimp shells are collected with the rest of the shell waste.'},
+{id:'blite',en:'Sea Blite Stir-fry',th:'ผัดชะคราม',fish:'Home cooks pick this salt-loving plant along the shoreline.',mang:'It grows where the soil is salty, next to the mangroves.',shell:'No shell on this plate, but ordering it still earns one for your bag.'},
+{id:'dessert',en:'Local Dessert (name to confirm)',th:'ขนมท้องถิ่น (รอยืนยันชื่อ)',fish:'A family recipe kept by a local cook.',mang:'Some mangrove fruit can be used in sweets and drinks.',shell:'A tiny shell token goes to the planting fund with every sale.'}];
+var STAGES=[
+{at:0,en:'Seed',th:'เมล็ด',rew:'Seed planted! Your first shell starts the loop.'},
+{at:2,en:'Sprout',th:'งอก',rew:'Sprout! Draft fact: roots start to trap sediment. [to confirm]'},
+{at:5,en:'Sapling',th:'ต้นกล้า',rew:'Sapling! Draft fact: waves slow down behind a shell barrier. [to confirm]'},
+{at:9,en:'Young Mangrove',th:'ป่าชายเลนรุ่นเยาว์',rew:'Young mangrove! Your meals helped grow a new shore. ขอบคุณ!'}];
+
+/* ===== QUIZ, WARDROBE, SAPLING TALK (draft facts: confirm with locals) ===== */
+var QUIZ={cockle:{q:'What holds the mud that cockles live in?',o:['Street lights','Mangrove roots','Plastic bags'],a:1},crab:{q:'Where do young crabs hide when the tide goes out?',o:['In the roots','On the road','In a boat'],a:0},shrimp:{q:'What does the mangrove forest do for nearby farms?',o:['Heats the water','Makes noise','Filters runoff'],a:2},blite:{q:'Where does sea blite grow?',o:['On snowy mountains','In salty soil by the mangroves','In deserts'],a:1},dessert:{q:'What can some mangrove fruit be used for?',o:['Cement','Shoes','Sweets and drinks'],a:2}};
+var ACC=[{id:'hat',en:'Straw hat',kp:3},{id:'crab',en:'Crab friend',kp:8},{id:'can',en:'Watering can',kp:14}];
+var TIPS=['Yum! Roots like mine hold the mud in place. [to confirm]','Shell fences slow the waves so I can grow! [to confirm]','Crabs hide in roots like mine when the tide goes out. [to confirm]','Salty water? No problem, I’m a mangrove! [to confirm]'];
+var LT=['omg. Did you know? Seashells are used to protect the shores?','omg. Did you know? Mangrove roots hold the mud in place?','omg. Did you know? Cockles, crabs and shrimp all depend on the coast?','omg. Did you know? Crabs hide in mangrove roots at low tide?'];
+/* ===== 3. STATE + SAVE ===== */
+var KEY='mangrove-menu-v2',S={meals:0,pending:0,fed:0,last:'',ord:{},kp:0,read:{},quiz:{},seen:0,pts:0,day:null,prof:null,pid:'',streak:0,theme:'blue'};
+try{var raw=localStorage.getItem(KEY);if(raw)S=Object.assign(S,JSON.parse(raw))}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function $(i){return document.getElementById(i)}
+function stageIdx(){var k=0;STAGES.forEach(function(s,i){if(S.fed>=s.at)k=i});return k}
+function toast(t){var e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(function(){e.classList.remove('on')},2300)}
+
+/* ===== 4. MENU ===== */
+$('menu').innerHTML=DISHES.map(function(d){return '<article class="note px" id="d-'+d.id+'"><div class="tape"></div>'+
+'<h2>'+d.en+'</h2><div class="th">'+d.th+'</div>'+
+'<div class="art px">'+spr(d.id,96)+'<div class="lbl">ART SLOT · swap in your illustration</div></div>'+
+'<div class="row"><button class="btn go" data-o="'+d.id+'">Cook · ทำอาหาร</button><button class="btn" data-s="'+d.id+'" aria-expanded="false">Story · เรื่องราว</button></div>'+
+'<div class="story"><div class="layer"><span class="n">1</span><b>The fisherfolk · ชาวประมง</b><span class="tc">to confirm with locals</span><br>'+d.fish+'</div>'+
+'<div class="layer"><span class="n">2</span><b>The mangrove · ป่าชายเลน</b><span class="tc">to confirm with locals</span><br>'+d.mang+'</div>'+
+'<div class="layer"><span class="n">3</span><b>The shell · เปลือกหอย</b><span class="tc">to confirm with locals</span><br>'+d.shell+'</div><div class="quiz" id="q-'+d.id+'"></div></div></article>'}).join('');
+$('menu').onclick=function(e){
+var o=e.target.closest('[data-o]'),s=e.target.closest('[data-s]'),q=e.target.closest('[data-q]');
+if(o){startCook(o.dataset.o);return}
+if(s){var c=s.closest('.note');c.classList.toggle('open');s.setAttribute('aria-expanded',c.classList.contains('open'));if(c.classList.contains('open')){ensureDay();var sid=s.dataset.s;if(!S.day.r[sid]){S.day.r[sid]=1;var first=!S.read[sid];S.read[sid]=1;if(first)S.kp+=1;gain(5);save();draw();cheer(first?'+1 KP, +5 pts!':'+5 pts!')}}}
+if(q){var id=q.dataset.q,Z=QUIZ[id];if(+q.dataset.i===Z.a){ensureDay();if(!S.day.q[id]){S.day.q[id]=1;var f1=!S.quiz[id];S.quiz[id]=1;S.pending++;if(f1)S.kp+=3;gain(10);save();draw();cheer(f1?'Correct! +1 shell, +3 KP, +10 pts':'Correct! +1 shell, +10 pts')}}else{toast('Not quite! Re-read the mangrove layer.');buzz()}}};
+
+/* ===== 5. FEED / DAILY / RESET ===== */
+$('tray').onclick=function(e){
+if(!e.target.closest('.shell')||S.pending<1)return;
+ensureDay();var before=stageIdx();S.pending--;S.fed++;gain(3,'fed');save();draw();say();
+if(stageIdx()>before){var g=$('slot');g.classList.remove('grow');void g.offsetWidth;g.classList.add('grow');cheer('Level up: '+STAGES[stageIdx()].en+'!',1)}};
+$('daily').onclick=function(){var k=new Date().toDateString();if(S.last===k)return;var y=new Date(Date.now()-864e5).toDateString();S.streak=(S.last===y)?(S.streak||0)+1:1;S.last=k;S.pending++;var bonus=S.streak%3===0;if(bonus)S.pending++;gain(5+Math.min(S.streak,7));save();draw();cheer('Day '+S.streak+' streak!'+(bonus?' Bonus shell!':' +1 shell'))};
+$('reset').onclick=function(){if(confirm('Reset all progress? เริ่มใหม่ทั้งหมด?')){S={meals:0,pending:0,fed:0,last:'',ord:{},kp:0,read:{},quiz:{},seen:1,pts:0,day:null,prof:S.prof,pid:S.pid,streak:0,theme:S.theme};save();draw()}};
+
+/* ===== 6. DRAW ===== */
+function draw(){
+ensureDay();var i=stageIdx(),st=STAGES[i],nxt=STAGES[i+1];
+$('i1').innerHTML=spr('heart',28);$('i2').innerHTML=spr('shell',28);
+$('hMeals').textContent=S.meals;$('hFed').textContent=S.fed;$('lv').textContent='LV '+(i+1);
+$('art').innerHTML=spr('s'+i,72);
+$('stage').textContent=st.en+' · '+st.th;
+var seg='';for(var k=1;k<=9;k++)seg+='<i class="'+(S.fed>=k?'on':'')+'"></i>';$('seg').innerHTML=seg;
+$('stats').innerHTML='Sediment '+Math.min(100,Math.round(S.fed/9*100))+'% · Meals that planted a mangrove: <b>'+S.meals+'</b>'+(nxt?'<br>Next: '+nxt.en+' at '+nxt.at+' shells':'<br>Fully grown!');
+var t='';for(var j=0;j<S.pending;j++)t+='<button class="shell" aria-label="Feed shell to sapling">'+spr('shell',36)+'</button>';
+$('tray').innerHTML=t||'<span class="hint">Order a dish to get a shell. สั่งอาหารเพื่อรับเปลือกหอย</span>';
+var dis=S.last===new Date().toDateString();$('daily').disabled=dis;
+var b='';DISHES.forEach(function(d){b+='<div class="bd px '+(S.ord[d.id]?'':'lock')+'">'+spr(d.id,56)+'<span>'+d.en.split(' (')[0]+'</span></div>'});
+STAGES.forEach(function(s,j){b+='<div class="bd px '+(j<=i?'':'lock')+'">'+spr('s'+j,56)+'<span>'+s.en+'</span></div>'});
+$('badges').innerHTML=b;
+$('rewards').innerHTML=STAGES.filter(function(s,j){return j<=i}).map(function(s){return '<p>★ '+s.rew+'</p>'}).join('');extra()}
+function renderQ(d){var Z=QUIZ[d.id],el=$('q-'+d.id);el.innerHTML=(S.day&&S.day.q&&S.day.q[d.id])?'<div class="ok">★ Done for today! Back tomorrow · พรุ่งนี้มาใหม่</div>':'<div><b>Quick question · คำถามด่วน</b> (+1 shell)</div><div>'+Z.q+'</div>'+Z.o.map(function(t,i){return '<button class="btn" data-q="'+d.id+'" data-i="'+i+'">'+t+'</button>'}).join('')}
+function extra(){
+$('hKp').textContent=S.kp;DISHES.forEach(renderQ);
+var ds=(S.last===new Date().toDateString()||S.last===new Date(Date.now()-864e5).toDateString())?(S.streak||0):0;$('streak').textContent='🔥 Streak: '+ds+' day'+(ds===1?'':'s')+' · bonus shell every 3rd day';
+var g='';DISHES.forEach(function(d){var r=S.read[d.id],q=S.quiz[d.id];g+='<div class="gc px '+(r?'':'lock')+'">'+spr(d.id,48)+'<b>'+(r?d.en.split(' (')[0]:'???')+'</b><span>'+(r?'Read ✓':'Not met yet')+(q?' · Quiz ★':'')+'</span></div>'});$('guide').innerHTML=g;
+var w='',c='';ACC.forEach(function(a,j){var on=S.kp>=a.kp;w+='<div class="gc px '+(on?'':'lock')+'">'+spr(a.id,48)+'<b>'+a.en+'</b><span>'+(on?'Unlocked!':a.kp+' KP')+'</span></div>';if(on)c+='<span class="ac a'+j+'">'+spr(a.id,28)+'</span>'});$('wardrobe').innerHTML=w;$('acc').innerHTML=c;today()}
+function say(){var b=$('bub');b.textContent=TIPS[Math.floor(Math.random()*TIPS.length)];b.classList.add('on');clearTimeout(say.t);say.t=setTimeout(function(){b.classList.remove('on')},4000)}
+function openHow(){$('howto').classList.add('on')}
+$('help').onclick=openHow;
+$('hclose').onclick=function(){$('howto').classList.remove('on');S.seen=1;save();if(!S.prof)openProf()};
+(function(){var st=0,N=8,done=0;
+var LPAL={o:'#5B2A4A',g:'#8FD99B',G:'#3FA66B',s:'#FFF1C9',k:'#FFC9A8',p:'#FF9EBB'};
+var LB=['....oooo....','..ooggggoo..','.oggggggggo.','.ogoggggogo.','.ogpggggpgo.','.ogggoogggo.','..oggggggo..'];
+var LL=[['............','............','............'],['............','............','.....GG.....'],['............','...GG..GG...','....GGGG....'],['..GG....GG..','.GGGG..GGGG.','..GGGGGGGG..']];
+function lspr(f,px){var rows=LL[f].concat(LB,['ssssssssssss','kkkkkkkkkkkk']),h='<svg viewBox="0 0 12 12" width="'+px+'" height="'+px+'" shape-rendering="crispEdges" aria-hidden="true">';rows.forEach(function(r,y){for(var x=0;x<r.length;x++){var c=LPAL[r[x]];if(c)h+='<rect x="'+x+'" y="'+y+'" width="1" height="1" fill="'+c+'"/>'}});return h+'</svg>'}
+function tip(i){var t=$('ltip');t.textContent=LT[i%LT.length];t.classList.remove('pop');void t.offsetWidth;t.classList.add('pop')}
+function finish(){if(done)return;done=1;clearInterval(iv);$('load').style.display='none';if(!S.seen)openHow();else if(!S.prof)openProf()}
+tip(0);$('lsp').innerHTML=lspr(0,128);
+var iv=setInterval(function(){st++;var l=$('lsp');l.innerHTML=lspr(Math.min(3,Math.floor(st/2)),128);l.classList.remove('bn');void l.offsetWidth;l.classList.add('bn');$('lfill').style.width=Math.min(100,st/N*100)+'%';if(st%2===0)tip(st/2);if(st>=N){clearInterval(iv);setTimeout(finish,500)}},1300);
+})();
+/* ===== MASCOT + CONFETTI ===== */
+function cheer(msg,big){
+var m=$('mascot');$('msay').textContent=msg;m.classList.add('on');
+if(musOn)jingle();
+if(!matchMedia('(prefers-reduced-motion:reduce)').matches)confetti(big?44:22);
+clearTimeout(cheer.t);cheer.t=setTimeout(function(){m.classList.remove('on')},2400)}
+function confetti(n){var E=['🌱','🐚','✨','🦀','🌿','💖','⭐','🎉'];for(var i=0;i<n;i++){var s=document.createElement('span');s.className='cf';s.textContent=E[Math.floor(Math.random()*E.length)];s.style.left=Math.random()*100+'vw';s.style.animationDelay=(Math.random()*.4)+'s';s.style.fontSize=(16+Math.random()*16)+'px';document.body.appendChild(s);setTimeout(function(x){x.remove()},2500,s)}}
+/* ===== MUSIC (generated chiptune, no audio files; off until you tap the button) ===== */
+var AC=null,musOn=false,mTimer=null,step=0,nextT=0;
+/* ORIGINAL bouncy pop groove (not a copy of any real song). 112 BPM, chords F - G - Em - Am */
+var ROOT=[87.3,98,82.4,110],CH=[[349,440,523],[392,494,587],[330,392,494],[440,523,659]];
+var LEAD=[[784,0,659,0,784,0,880,784,0,659,0,0,523,0,659,0],[784,0,988,0,784,0,659,0,587,0,659,784,0,0,0,0],[659,0,784,0,988,0,784,659,0,0,784,0,659,0,587,0],[880,0,784,0,659,0,784,880,1047,0,880,0,784,0,0,0]];
+var SP16=60/112/4;
+function noise(t,d,v,hp){var n=Math.floor(AC.sampleRate*d),b=AC.createBuffer(1,n,AC.sampleRate),a=b.getChannelData(0);for(var i=0;i<n;i++)a[i]=Math.random()*2-1;var s=AC.createBufferSource();s.buffer=b;var f=AC.createBiquadFilter();f.type='highpass';f.frequency.value=hp;var g=AC.createGain();g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);s.connect(f);f.connect(g);g.connect(AC.destination);s.start(t)}
+function kick(t){var o=AC.createOscillator(),g=AC.createGain();o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(40,t+.12);g.gain.setValueAtTime(.16,t);g.gain.exponentialRampToValueAtTime(.0001,t+.16);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+.18)}
+function tone(f,t,d,type,v){var o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d)}
+function sched(){while(nextT<AC.currentTime+.25){var bar=Math.floor(step/16)%4,s=step%16,t=nextT;
+if([0,3,6,8,10,14].indexOf(s)>-1)tone(ROOT[bar]*(s===6||s===14?2:1),t,.18,'triangle',.11);
+if(s===0||s===8||s===10)kick(t);
+if(s===4||s===12)noise(t,.12,.06,1500);
+if(s%2===0)noise(t,.04,.025,7000);
+if(s%4===2)CH[bar].forEach(function(f){tone(f,t,.12,'square',.012)});
+var L=LEAD[bar][s];if(L)tone(L,t,.2,'square',.028);
+step++;nextT+=SP16}}
+function jingle(){var t=AC.currentTime+.02;[784,988,1175,1568].forEach(function(f,i){tone(f,t+i*.08,.16,'square',.06)})}
+$('mus').onclick=function(){
+if(!AC){var C=window.AudioContext||window.webkitAudioContext;if(!C){toast('Sound not supported here');return}AC=new C()}
+musOn=!musOn;$('mus').textContent=musOn?'♪ ON':'♪ OFF';
+if(musOn){AC.resume();step=0;nextT=AC.currentTime+.05;mTimer=setInterval(sched,60)}else{clearInterval(mTimer)}};
+document.addEventListener('visibilitychange',function(){if(!AC||!musOn)return;if(document.hidden)AC.suspend();else AC.resume()});
+/* ===== CLICK SOUNDS (only when the music button is ON) ===== */
+function blip(f1,f2,d){var t=AC.currentTime+.01;tone(f1,t,d,'square',.06);if(f2)tone(f2,t+d*.6,d,'square',.06)}
+function buzz(){if(!musOn)return;var t=AC.currentTime+.01;tone(160,t,.18,'sawtooth',.07);tone(120,t+.12,.2,'sawtooth',.07)}
+document.addEventListener('click',function(e){if(!musOn)return;var b=e.target.closest('button');if(!b)return;
+if(b.classList.contains('shell'))blip(660,990,.1);else if(b.classList.contains('go'))blip(784,1175,.1);else if(b.dataset.s)blip(520,700,.08);else if(b.dataset.q)blip(600,0,.08);else blip(440,0,.07)});
+$('mspr').innerHTML=spr('skip',96);
+/* ===== POINTS, LEVELS, DAILY QUESTS ===== */
+var LEVELS=[{at:0,n:'Tide Pooler'},{at:30,n:'Shell Scout'},{at:80,n:'Mud Explorer'},{at:160,n:'Root Keeper'},{at:300,n:'Mangrove Guardian'}];
+var QUESTS=[{id:'r',t:'Read 2 stories',th:'อ่าน 2 เรื่อง',n:2,get:function(d){return Object.keys(d.r).length}},{id:'q',t:'Answer 2 quiz questions',th:'ตอบคำถาม 2 ข้อ',n:2,get:function(d){return Object.keys(d.q).length}},{id:'f',t:'Feed your sapling 3 shells',th:'ป้อนเปลือกหอย 3 ครั้ง',n:3,get:function(d){return d.fed||0}}];
+function todayKey(){return new Date().toDateString()}
+function dayId(){return new Date().toLocaleDateString('en-CA')}
+function ensureDay(){if(!S.day||S.day.d!==todayKey())S.day={d:todayKey(),pts:0,o:{},r:{},q:{},fed:0,done:{},chest:0};if(!S.pid)S.pid='p'+Math.random().toString(36).slice(2,10)}
+function gain(n,t){ensureDay();S.pts=(S.pts||0)+n;S.day.pts+=n;if(t)S.day[t]=(S.day[t]||0)+1;checkQuests();pushScore()}
+function checkQuests(){var d=S.day;QUESTS.forEach(function(q){if(!d.done[q.id]&&q.get(d)>=q.n){d.done[q.id]=1;S.pending++;S.pts+=10;d.pts+=10;setTimeout(function(){cheer('Quest done: '+q.t+'! +1 shell, +10 pts')},900)}});if(!d.chest&&QUESTS.every(function(q){return d.done[q.id]})){d.chest=1;S.kp+=2;S.pts+=20;d.pts+=20;setTimeout(function(){cheer('All quests done! +2 KP, +20 pts',1)},1800)}}
+function title(){var t=LEVELS[0].n;LEVELS.forEach(function(l){if((S.pts||0)>=l.at)t=l.n});return t}
+/* ===== AVATAR ===== */
+var AVT=['............','....HHHH....','...HHHHHH...','...HKKKKH...','...KoKKoK...','...KpKKpK...','....KKKK....','...TTTTTT...','..TTTTTTTT..','..KTTTTTTK..','...TT..TT...','...oo..oo...'];
+var HAIR=['#3B2A2A','#8A5A2B','#E0A83B','#D9477F','#5B8DEF'],SKIN=['#FFE0C2','#F2C9A0','#D9A070','#A8704A','#7A4A33'],SHIRT=['#E24D4D','#2F8F5B','#2B6F8F','#F5B83B','#9C6FD6'];
+function avSvg(a,px){a=a||{h:0,k:1,s:2};var P={H:HAIR[a.h]||HAIR[0],K:SKIN[a.k]||SKIN[1],T:SHIRT[a.s]||SHIRT[2],o:'#5B2A4A',p:'#F59BBB'};var h='<svg viewBox="0 0 12 12" width="'+px+'" height="'+px+'" shape-rendering="crispEdges" aria-hidden="true">';AVT.forEach(function(r,y){for(var x=0;x<r.length;x++){var c=P[r[x]];if(c)h+='<rect x="'+x+'" y="'+y+'" width="1" height="1" fill="'+c+'"/>'}});return h+'</svg>'}
+var draft={h:0,k:1,s:2};
+function swatches(id,arr,key){$(id).innerHTML=arr.map(function(c,i){return '<button type="button" class="'+(draft[key]===i?'on':'')+'" style="background:'+c+'" data-k="'+key+'" data-i="'+i+'" aria-label="'+key+' '+(i+1)+'"></button>'}).join('')}
+function paintProf(){swatches('swh',HAIR,'h');swatches('swk',SKIN,'k');swatches('sws',SHIRT,'s');$('pav').innerHTML=avSvg(draft,96)}
+function openProf(){var p=S.prof;draft=p&&p.av?Object.assign({},p.av):{h:0,k:1,s:2};$('pname').value=p&&!p.guest?p.name:'';paintProf();$('prof').classList.add('on')}
+$('avb').onclick=openProf;
+$('prof').onclick=function(e){var b=e.target.closest('[data-k]');if(b){draft[b.dataset.k]=+b.dataset.i;paintProf()}};
+$('psave').onclick=function(){var n=$('pname').value.replace(/[<>]/g,'').trim().slice(0,14)||'Explorer';S.prof={name:n,av:Object.assign({},draft)};save();$('prof').classList.remove('on');draw();pushScore();cheer('Welcome, '+n+'!')};
+$('pguest').onclick=function(){S.prof={name:'Guest',av:{h:0,k:1,s:2},guest:1};save();$('prof').classList.remove('on');draw()};
+/* ===== DAILY RANKING =====
+   Works on this device only until you add a free Supabase project (see the notes I gave you).
+   Paste your project URL and anon key below. Leave empty = ranking shows only your own score. */
+var BACKEND={url:'',key:''};
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function lbLocal(){var p=S.prof||{name:'Guest',av:{h:0,k:1,s:2}};return [{name:p.name,av:p.av,score:S.day.pts,me:1}]}
+function renderRank(rows,live){$('rank').innerHTML=rows.map(function(r,i){return '<div class="qr'+(r.me?' me':'')+'"><span class="prow">'+(i+1)+'. '+avSvg(r.av,28)+esc(r.name)+'</span><b>'+r.score+' pts</b></div>'}).join('');$('rankMsg').textContent=live?'Live ranking · resets every day':'Showing your score today. The shared ranking is coming soon!'}
+function loadRank(){if(!BACKEND.url){renderRank(lbLocal(),false);return}
+if(loadRank.rows&&Date.now()-loadRank.t<20000){renderRank(loadRank.rows,true);return}
+fetch(BACKEND.url+'/rest/v1/scores?day=eq.'+dayId()+'&order=score.desc,updated.asc&limit=10',{headers:{apikey:BACKEND.key,Authorization:'Bearer '+BACKEND.key}}).then(function(r){return r.json()}).then(function(rows){if(!Array.isArray(rows))throw 0;loadRank.rows=rows.map(function(r){var a;try{a=JSON.parse(r.av)}catch(e){a=null}return {name:r.name,av:a,score:r.score,me:r.pid===S.pid}});loadRank.t=Date.now();renderRank(loadRank.rows,true)}).catch(function(){renderRank(lbLocal(),false)})}
+function pushScore(){if(!BACKEND.url||!S.prof||S.prof.guest)return;clearTimeout(pushScore.t);pushScore.t=setTimeout(function(){fetch(BACKEND.url+'/rest/v1/scores?on_conflict=pid,day',{method:'POST',headers:{apikey:BACKEND.key,Authorization:'Bearer '+BACKEND.key,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates'},body:JSON.stringify({pid:S.pid,day:dayId(),name:S.prof.name,av:JSON.stringify(S.prof.av),score:S.day.pts,updated:new Date().toISOString()})}).then(function(){loadRank.t=0;loadRank()}).catch(function(){})},1500)}
+/* ===== TODAY PANEL ===== */
+function today(){ensureDay();var p=S.prof||{name:'Guest',av:{h:0,k:1,s:2}};
+$('tAv').innerHTML=avSvg(p.av,64);$('avb').innerHTML=avSvg(p.av,28);$('tName').textContent=p.name;$('tTitle').textContent=title();$('tPts').textContent=S.day.pts;$('tTot').textContent=S.pts||0;
+$('quests').innerHTML=QUESTS.map(function(q){var n=Math.min(q.n,q.get(S.day)),dn=S.day.done[q.id];return '<div class="qr'+(dn?' dn':'')+'"><span>'+(dn?'★':'☐')+' '+q.t+' <span class="cap">'+q.th+'</span></span><b>'+n+'/'+q.n+'</b></div>'}).join('')+'<div class="cap" style="margin-top:6px">Finish all 3 for a bonus chest: +2 KP, +20 pts.</div>';
+DISHES.forEach(function(d){var b=document.querySelector('[data-o="'+d.id+'"]');if(b){var on=!!S.day.o[d.id];b.textContent=on?'Cooked ✓ · พรุ่งนี้ใหม่':'Cook · ทำอาหาร';b.style.opacity=on?.6:1}});
+loadRank()}
+/* ===== COOKING MINI-GAME (draft recipes: confirm with a local cook) ===== */
+var SHELF=[{id:'garlic',en:'Garlic',th:'กระเทียม'},{id:'chili',en:'Chili',th:'พริก'},{id:'lime',en:'Lime',th:'มะนาว'},{id:'basil',en:'Basil',th:'กะเพรา'},{id:'coconut',en:'Coconut milk',th:'กะทิ'},{id:'sugar',en:'Palm sugar',th:'น้ำตาลปี๊บ'}];
+var RECIPE={cockle:['chili','garlic'],crab:['chili','lime'],shrimp:['garlic','basil'],blite:['garlic','chili'],dessert:['coconut','sugar']};
+var cur=null;
+function dishOf(id){return DISHES.filter(function(x){return x.id===id})[0]}
+function hint(m){var h=$('chint');if(h)h.textContent=m}
+function startCook(id){ensureDay();if(S.day.o[id]){toast('Already cooked today! Come back tomorrow.');return}cur={id:id,got:[],wrong:0,stir:0,step:1};renderCook();$('cook').classList.add('on')}
+function panHTML(d){return spr(d.id,64)+cur.got.map(function(g){return spr(g,48)}).join('')+spr('pan',64)}
+function renderCook(){
+var d=dishOf(cur.id),b=$('cbox'),nm=d.en.split(' (')[0];
+if(cur.step===1){
+b.innerHTML='<h2>Cook: '+nm+'</h2><div class="cap">'+d.th+' · draft recipe, confirm with a local cook</div><p>Pick the <b>2 ingredients</b> that belong in this dish. · เลือกวัตถุดิบ 2 อย่าง</p><div class="pan px">'+panHTML(d)+'</div><div class="shelf">'+SHELF.map(function(s){return '<button class="ing'+(cur.got.indexOf(s.id)>-1?' used':'')+'" data-ing="'+s.id+'">'+spr(s.id,44)+'<b>'+s.en+'</b><span class="cap">'+s.th+'</span></button>'}).join('')+'</div><div class="cap" id="chint">&nbsp;</div><button class="btn" id="cquit">Close</button>'}
+else if(cur.step===2){
+var sg='';for(var i=0;i<8;i++)sg+='<i class="'+(cur.stir>i?'on':'')+'"></i>';
+b.innerHTML='<h2>Stir it! · ผัด</h2><p>Tap STIR 8 times to cook it through.</p><div class="pan px" id="panb">'+panHTML(d)+'</div><div class="seg" id="cseg">'+sg+'</div><button class="btn go" id="stir">STIR! · ผัด</button><button class="btn" id="cquit">Close</button>'}
+else{var r=cur.res;
+b.innerHTML='<div class="lbl" style="color:var(--hot);text-align:center">★ New meal cooked! ★</div><div class="prow" style="justify-content:center;margin:10px 0">'+spr(d.id,120)+'</div><h2 style="text-align:center">You made a Bang Khun Thian meal!</h2><div class="th" style="text-align:center">คุณทำอาหารบางขุนเทียนสำเร็จ!</div><p style="text-align:center"><b>'+nm+'</b> · '+d.th+'</p><div class="stars">'+'★'.repeat(r.stars)+'☆'.repeat(3-r.stars)+'</div><p style="text-align:center">+1 shell · +'+r.pts+' pts'+(r.nw?' · New cookbook entry!':'')+'</p><div class="cap" style="text-align:center">Meals cooked: '+S.meals+'</div><div style="text-align:center"><button class="btn go" id="cdone">Yum! · อร่อย</button></div>'}}
+function finishCook(){
+var id=cur.id,stars=cur.wrong===0?3:cur.wrong<=2?2:1,pts=5+stars*2;
+ensureDay();S.day.o[id]=1;S.meals++;S.pending++;var nw=!S.ord[id];S.ord[id]=1;gain(pts);save();draw();
+cur.step=3;cur.res={stars:stars,pts:pts,nw:nw};renderCook();
+if(!matchMedia('(prefers-reduced-motion:reduce)').matches)confetti(40);if(musOn)jingle()}
+$('cbox').onclick=function(e){
+var t=e.target.closest('button');if(!t||!cur)return;
+if(t.id==='cquit'||t.id==='cdone'){$('cook').classList.remove('on');cur=null;return}
+if(t.dataset.ing&&cur.step===1){var id=t.dataset.ing;if(cur.got.indexOf(id)>-1)return;
+if(RECIPE[cur.id].indexOf(id)>-1){cur.got.push(id);renderCook();if(cur.step===1&&cur.got.length>=2){cur.step=2;renderCook()}else hint('Yes! One more.')}
+else{cur.wrong++;t.classList.add('shake');hint('Hmm, that doesn’t go in this dish. Try another!');setTimeout(function(){t.classList.remove('shake')},450)}}
+else if(t.id==='stir'&&cur.step===2){cur.stir++;var sg=document.querySelectorAll('#cseg i');for(var i=0;i<sg.length;i++)sg[i].className=cur.stir>i?'on':'';var pb=$('panb');pb.classList.remove('bn');void pb.offsetWidth;pb.classList.add('bn');if(cur.stir>=8)finishCook()}};
+/* ===== THEMES (blue / green / orange) ===== */
+var THEMES=['blue','green','orange'];
+function setTheme(t){if(THEMES.indexOf(t)<0)t='blue';document.documentElement.setAttribute('data-theme',t);S.theme=t;save();Array.prototype.forEach.call(document.querySelectorAll('.tsw button'),function(b){b.setAttribute('aria-pressed',b.dataset.t===t?'true':'false')})}
+document.querySelector('.tsw').onclick=function(e){var b=e.target.closest('button');if(b)setTheme(b.dataset.t)};
+setTheme(S.theme||'blue');
+draw();
+</script>
+</body>
+</html>
