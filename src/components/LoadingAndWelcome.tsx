@@ -126,6 +126,7 @@ interface WelcomeModalProps {
   lang: AppLang;
   onChangeLang: (lang: AppLang) => void;
   alreadyRead?: boolean;
+  showCustomizeInButton?: boolean;
   onConfirmStart: () => void;
 }
 
@@ -133,6 +134,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({
   lang,
   onChangeLang,
   alreadyRead = false,
+  showCustomizeInButton = true,
   onConfirmStart,
 }) => {
   const t = UI_TEXT[lang];
@@ -302,7 +304,11 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({
                 : 'bg-[var(--surface-tint)] text-[var(--ink-soft)]'
             }`}
           >
-            {allRead ? t.welcomeOkay : t.welcomeLocked}
+            {allRead
+              ? showCustomizeInButton
+                ? t.welcomeOkay
+                : t.startAdventure
+              : t.welcomeLocked}
           </button>
         </div>
       </div>

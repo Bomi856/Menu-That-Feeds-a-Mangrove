@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app';
+import { FirebaseApp, initializeApp } from 'firebase/app';
 import {
   Auth,
   GoogleAuthProvider,
@@ -11,6 +11,7 @@ import {
   initializeAuth,
 } from 'firebase/auth';
 import {
+  Firestore,
   doc,
   getDocFromServer,
   getFirestore,
@@ -19,12 +20,43 @@ import {
   setDoc,
   updateDoc,
 } from 'firebase/firestore';
-import firebaseConfig from '../firebase-applet-config.json';
 
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+interface FirebaseAppletConfig {
+  apiKey?: string;
+  authDomain?: string;
+  projectId?: string;
+  appId?: string;
+  storageBucket?: string;
+  messagingSenderId?: string;
+  firestoreDatabaseId?: string;
+}
 
-function createAuth(): Auth {
+const localConfigModules = import.meta.glob<{ default: FirebaseAppletConfig }>(
+  '../firebase-applet-config.json',
+  { eager: true }
+);
+const localConfig: FirebaseAppletConfig =
+  Object.values(localConfigModules)[0]?.default || {};
+
+const envConfig: FirebaseAppletConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  firestoreDatabaseId: import.meta.env.VITE_FIREBASE_DATABASE_ID,
+};
+
+const resolvedConfig: FirebaseAppletConfig = envConfig.apiKey
+  ? envConfig
+  : localConfig;
+
+export const firebaseEnabled = Boolean(
+  resolvedConfig.apiKey && resolvedConfig.projectId
+);
+
+function createAuth(app: FirebaseApp): Auth {
   try {
     return initializeAuth(app, {
       persistence: [
@@ -40,9 +72,27 @@ function createAuth(): Auth {
   }
 }
 
-export const auth = createAuth();
-export const googleProvider = new GoogleAuthProvider();
-googleProvider.setCustomParameters({ prompt: 'select_account' });
+let app: FirebaseApp | null = null;
+export let db: Firestore | null = null;
+export let auth: Auth | null = null;
+export let googleProvider: GoogleAuthProvider | null = null;
+
+if (firebaseEnabled) {
+  app = initializeApp({
+    apiKey: resolvedConfig.apiKey,
+    authDomain: resolvedConfig.authDomain,
+    projectId: resolvedConfig.projectId,
+    appId: resolvedConfig.appId,
+    storageBucket: resolvedConfig.storageBucket,
+    messagingSenderId: resolvedConfig.messagingSenderId,
+  });
+  db = resolvedConfig.firestoreDatabaseId
+    ? getFirestore(app, resolvedConfig.firestoreDatabaseId)
+    : getFirestore(app);
+  auth = createAuth(app);
+  googleProvider = new GoogleAuthProvider();
+  googleProvider.setCustomParameters({ prompt: 'select_account' });
+}
 
 export enum OperationType {
   CREATE = 'create',
@@ -78,13 +128,13 @@ export function handleFirestoreError(
   const errInfo: FirestoreErrorInfo = {
     error: error instanceof Error ? error.message : String(error),
     authInfo: {
-      userId: auth.currentUser?.uid,
-      email: auth.currentUser?.email,
-      emailVerified: auth.currentUser?.emailVerified,
-      isAnonymous: auth.currentUser?.isAnonymous,
-      tenantId: auth.currentUser?.tenantId,
+      userId: auth?.currentUser?.uid,
+      email: auth?.currentUser?.email,
+      emailVerified: auth?.currentUser?.emailVerified,
+      isAnonymous: auth?.currentUser?.isAnonymous,
+      tenantId: auth?.currentUser?.tenantId,
       providerInfo:
-        auth.currentUser?.providerData?.map((provider) => ({
+        auth?.currentUser?.providerData?.map((provider) => ({
           providerId: provider.providerId,
           email: provider.email,
         })) || [],
@@ -97,6 +147,7 @@ export function handleFirestoreError(
 }
 
 export async function testConnection(): Promise<void> {
+  if (!db) return;
   try {
     await getDocFromServer(doc(db, 'test', 'connection'));
   } catch (error) {
@@ -191,6 +242,10 @@ export function subscribeUserProgress(
   onData: (data: CloudProgressPayload | null) => void,
   onError: (err: Error) => void
 ): () => void {
+  if (!db) {
+    onData(null);
+    return () => {};
+  }
   const path = `users/${uid}`;
   const ref = doc(db, 'users', uid);
 
@@ -218,6 +273,7 @@ export async function saveUserProgressToCloud(
   payload: CloudProgressPayload,
   existsInCloud: boolean
 ): Promise<void> {
+  if (!db) return;
   const path = `users/${uid}`;
   const ref = doc(db, 'users', uid);
   const clean = sanitizePayload(payload);

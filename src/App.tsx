@@ -43,6 +43,7 @@ import {
 import {
   CloudProgressPayload,
   auth,
+  firebaseEnabled,
   googleProvider,
   saveUserProgressToCloud,
   subscribeUserProgress,
@@ -230,6 +231,13 @@ export default function App() {
   const [welcomeAlreadyRead, setWelcomeAlreadyRead] = useState(false);
   const [showExplorerModal, setShowExplorerModal] = useState(false);
   const [isOpeningSetup, setIsOpeningSetup] = useState(false);
+  const [hasChefSetupDone, setHasChefSetupDone] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(CHEF_SETUP_KEY) === '1';
+    } catch {
+      return false;
+    }
+  });
   const [draftExplorer, setDraftExplorer] = useState(state.explorer);
   const [showResetModal, setShowResetModal] = useState(false);
   const [resetIncludeChef, setResetIncludeChef] = useState(false);
@@ -305,6 +313,10 @@ export default function App() {
 
   // Listen to Firebase Auth state
   useEffect(() => {
+    if (!auth) {
+      setAuthLoading(false);
+      return;
+    }
     const unsub = onAuthStateChanged(auth, (user) => {
       setAuthUser(user);
       setAuthLoading(false);
@@ -343,6 +355,18 @@ export default function App() {
 
         cloudDocExistsRef.current = true;
         skipNextCloudWriteRef.current = true;
+        if (
+          cloudData.mealsCooked > 0 ||
+          cloudData.shellsFed > 0 ||
+          (cloudData.explorer?.name && cloudData.explorer.name !== 'Coastal Chef')
+        ) {
+          try {
+            localStorage.setItem(CHEF_SETUP_KEY, '1');
+          } catch {
+            // Ignore storage errors
+          }
+          setHasChefSetupDone(true);
+        }
         setState(
           normalizeState({
             ...cloudData,
@@ -421,6 +445,10 @@ export default function App() {
   };
 
   const handleSignIn = async () => {
+    if (!firebaseEnabled || !auth || !googleProvider) {
+      showToast('Cloud sign-in is disabled here—saving progress locally!');
+      return;
+    }
     if (signingIn) return;
     setSigningIn(true);
     setAuthError(null);
@@ -457,6 +485,7 @@ export default function App() {
   };
 
   const handleSignOut = async () => {
+    if (!auth) return;
     try {
       await signOut(auth);
       setAuthError(null);
@@ -532,7 +561,14 @@ export default function App() {
     touchActivity('celebrating', 3000);
     setSaplingTip('Yay! Welcome to Bang Khun Thian! Let’s cook & protect the mangroves!');
 
-    if (!openedFromNav) {
+    let setupDone = hasChefSetupDone;
+    try {
+      if (localStorage.getItem(CHEF_SETUP_KEY) === '1') setupDone = true;
+    } catch {
+      // Ignore storage errors
+    }
+
+    if (!openedFromNav && !setupDone) {
       setDraftExplorer(stateRef.current.explorer);
       setIsOpeningSetup(true);
       setShowExplorerModal(true);
@@ -796,6 +832,7 @@ export default function App() {
     setShowResetModal(false);
 
     if (resetIncludeChef) {
+      setHasChefSetupDone(false);
       reopenedWelcomeFromNavRef.current = false;
       setWelcomeAlreadyRead(false);
       setShowWelcome(true);
@@ -1247,16 +1284,39 @@ export default function App() {
       <footer className="border-t-2 border-[var(--outline)]/25 bg-[var(--surface-card)] py-4 px-4">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 text-xs text-[var(--ink-soft)]">
           <span>Menu That Feeds a Mangrove · Bang Khun Thian Coastal Cafe Game</span>
-          <button
-            type="button"
-            onClick={() => {
-              cuteAudio.playPop(520);
-              handleRequestReset();
-            }}
-            className="underline hover:text-[var(--accent-primary)] font-bold"
-          >
-            {t.resetProgressBtn}
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                cuteAudio.playPop(620);
+                setDraftExplorer(state.explorer);
+                setIsOpeningSetup(false);
+                setShowExplorerModal(true);
+              }}
+              className="px-btn bg-[var(--surface-tint)] px-3 py-1.5 font-bold text-[var(--ink-main)] inline-flex items-center gap-2"
+            >
+              <ExplorerAvatar
+                hair={state.explorer.hair}
+                skin={state.explorer.skin}
+                apron={state.explorer.apron}
+                style={state.explorer.style}
+                accessory={state.explorer.accessory}
+                gender={state.explorer.gender}
+                size={22}
+              />
+              <span>{t.customTitle}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                cuteAudio.playPop(520);
+                handleRequestReset();
+              }}
+              className="underline hover:text-[var(--accent-primary)] font-bold"
+            >
+              {t.resetProgressBtn}
+            </button>
+          </div>
         </div>
       </footer>
 
@@ -1306,6 +1366,7 @@ export default function App() {
           lang={state.lang}
           onChangeLang={handleChangeLang}
           alreadyRead={welcomeAlreadyRead}
+          showCustomizeInButton={!hasChefSetupDone}
           onConfirmStart={handleConfirmWelcome}
         />
       )}
@@ -1571,6 +1632,7 @@ export default function App() {
                   } catch {
                     // Ignore storage errors
                   }
+                  setHasChefSetupDone(true);
                   setState((prev) => ({
                     ...prev,
                     explorer: {

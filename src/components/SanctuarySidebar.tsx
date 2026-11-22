@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { User } from 'firebase/auth';
 import { SAPLING_STAGES, WardrobeItem } from '../data/gameData';
 import { AppLang, getChefGreeting, PRONOUN_OPTIONS, PronounId, UI_TEXT } from '../data/i18n';
+import { firebaseEnabled } from '../firebase';
 import { cuteAudio } from '../utils/audio';
 import {
   ExplorerAvatar,
@@ -359,7 +360,11 @@ export const SanctuarySidebar: React.FC<SanctuarySidebarProps> = ({
 
         {/* Google Sign-In for Cloud Progress Saving */}
         <div className="mt-3 pb-3 border-b-2 border-dashed border-[var(--outline)]/25">
-          {authLoading ? (
+          {!firebaseEnabled ? (
+            <div className="text-xs font-semibold text-[var(--ink-soft)]">
+              Saving locally in this browser.
+            </div>
+          ) : authLoading ? (
             <div className="text-xs font-semibold text-[var(--ink-soft)]">Checking account...</div>
           ) : authUser ? (
             <div className="flex items-center justify-between gap-2">
