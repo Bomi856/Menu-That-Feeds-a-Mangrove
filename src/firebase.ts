@@ -38,23 +38,21 @@ const localConfigModules = import.meta.glob<{ default: FirebaseAppletConfig }>(
 const localConfig: FirebaseAppletConfig =
   Object.values(localConfigModules)[0]?.default || {};
 
+const envApiKey = (import.meta.env.VITE_FIREBASE_API_KEY || '').trim();
+const envProjectId = (import.meta.env.VITE_FIREBASE_PROJECT_ID || '').trim();
+
 const envConfig: FirebaseAppletConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  firestoreDatabaseId: import.meta.env.VITE_FIREBASE_DATABASE_ID,
+  apiKey: envApiKey,
+  authDomain: (import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || '').trim(),
+  projectId: envProjectId,
+  appId: (import.meta.env.VITE_FIREBASE_APP_ID || '').trim(),
+  storageBucket: (import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || '').trim(),
+  messagingSenderId: (import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '').trim(),
+  firestoreDatabaseId: (import.meta.env.VITE_FIREBASE_DATABASE_ID || '').trim(),
 };
 
-const resolvedConfig: FirebaseAppletConfig = envConfig.apiKey
-  ? envConfig
-  : localConfig;
-
-export const firebaseEnabled = Boolean(
-  resolvedConfig.apiKey && resolvedConfig.projectId
-);
+const resolvedConfig: FirebaseAppletConfig =
+  envConfig.apiKey && envConfig.projectId ? envConfig : localConfig;
 
 function createAuth(app: FirebaseApp): Auth {
   try {
@@ -76,22 +74,33 @@ let app: FirebaseApp | null = null;
 export let db: Firestore | null = null;
 export let auth: Auth | null = null;
 export let googleProvider: GoogleAuthProvider | null = null;
+export let firebaseEnabled = false;
 
-if (firebaseEnabled) {
-  app = initializeApp({
-    apiKey: resolvedConfig.apiKey,
-    authDomain: resolvedConfig.authDomain,
-    projectId: resolvedConfig.projectId,
-    appId: resolvedConfig.appId,
-    storageBucket: resolvedConfig.storageBucket,
-    messagingSenderId: resolvedConfig.messagingSenderId,
-  });
-  db = resolvedConfig.firestoreDatabaseId
-    ? getFirestore(app, resolvedConfig.firestoreDatabaseId)
-    : getFirestore(app);
-  auth = createAuth(app);
-  googleProvider = new GoogleAuthProvider();
-  googleProvider.setCustomParameters({ prompt: 'select_account' });
+if (resolvedConfig.apiKey && resolvedConfig.projectId) {
+  try {
+    app = initializeApp({
+      apiKey: resolvedConfig.apiKey,
+      authDomain: resolvedConfig.authDomain,
+      projectId: resolvedConfig.projectId,
+      appId: resolvedConfig.appId,
+      storageBucket: resolvedConfig.storageBucket,
+      messagingSenderId: resolvedConfig.messagingSenderId,
+    });
+    db = resolvedConfig.firestoreDatabaseId
+      ? getFirestore(app, resolvedConfig.firestoreDatabaseId)
+      : getFirestore(app);
+    auth = createAuth(app);
+    googleProvider = new GoogleAuthProvider();
+    googleProvider.setCustomParameters({ prompt: 'select_account' });
+    firebaseEnabled = true;
+  } catch (err) {
+    console.warn('Firebase initialization skipped; using local save mode:', err);
+    app = null;
+    db = null;
+    auth = null;
+    googleProvider = null;
+    firebaseEnabled = false;
+  }
 }
 
 export enum OperationType {
