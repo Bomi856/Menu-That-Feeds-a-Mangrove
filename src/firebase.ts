@@ -15,6 +15,7 @@ import {
   doc,
   getDocFromServer,
   getFirestore,
+  initializeFirestore,
   onSnapshot,
   serverTimestamp,
   setDoc,
@@ -86,9 +87,16 @@ if (resolvedConfig.apiKey && resolvedConfig.projectId) {
       storageBucket: resolvedConfig.storageBucket,
       messagingSenderId: resolvedConfig.messagingSenderId,
     });
-    db = resolvedConfig.firestoreDatabaseId
-      ? getFirestore(app, resolvedConfig.firestoreDatabaseId)
-      : getFirestore(app);
+    const databaseId = resolvedConfig.firestoreDatabaseId || undefined;
+    try {
+      db = initializeFirestore(
+        app,
+        { experimentalForceLongPolling: true },
+        databaseId
+      );
+    } catch {
+      db = databaseId ? getFirestore(app, databaseId) : getFirestore(app);
+    }
     auth = createAuth(app);
     googleProvider = new GoogleAuthProvider();
     googleProvider.setCustomParameters({ prompt: 'select_account' });
